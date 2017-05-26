@@ -32,7 +32,12 @@ public class TileMap : MonoBehaviour
         Vector3 offset = new Vector3(-mapWidth / 2, 0, -mapHeight / 2);
         for (int i = 0; i < mapWidth; i++)
             for (int j = 0; j < mapHeight; j++)
+            {
                 map[i, j] = Instantiate(tilePrefab, new Vector3(i, 0, j) + offset, Quaternion.identity, transform).GetComponent<Tile>();
+                map[i, j].index[0] = i; 
+                map[i, j].index[1] = j;
+            }
+                
 
         SetupTestCase();
     }
@@ -94,7 +99,7 @@ public class TileMap : MonoBehaviour
         SetupMap();
     }
 
-    public bool MoveUnit(Tile oldTile, Tile newTile, Tile unit) //change unit type to Unit when possible
+    public bool MoveUnit(Tile oldTile, Tile newTile, Unit unit) //change unit type to Unit when possible
     {
         if (newTile.unit || newTile.impassible) return false;
         oldTile.unit = null;
