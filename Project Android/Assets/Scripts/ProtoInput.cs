@@ -114,9 +114,7 @@ public class ProtoInput : MonoBehaviour
                     player.MoveTileTap(tile);
             }
         }
-
-        //Click - for debug
-        if (tapEnabled && Input.GetMouseButtonDown(0))
+        else if (tapEnabled && Input.GetMouseButtonDown(0))
         {
             RaycastHit hit;
             if(!Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit)) return;
