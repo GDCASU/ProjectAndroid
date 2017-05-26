@@ -11,9 +11,8 @@ using UnityEngine;
     the tile directly in front of the player.
  */
 
-public class Player : Unit {
-
-    private int playerDirection; //Set to whatever direcction the player is initially facing
+public class Player : Unit
+{
     public float maxDelay;
     private float moveDelay;
 
@@ -24,87 +23,60 @@ public class Player : Unit {
         moveDelay = maxDelay;
     }
 
-    void Update () {
+    void Update()
+    {
         //If a tile is tapped on screen, do 
-        MoveTileTap(tile);
+        //MoveTileTap(tile);
         //Else if D-Pad is held, pressed, or the joystick is held do
-        MoveDirection(direction);         
+        //MoveDirection(direction);         
         //If attack button is pressed
-        Attack();
-	}
+        //Attack();
+        moveDelay -= Time.deltaTime;
+    }
 
     //Move directly to a tapped tile
-    void MoveTileTap (Tile tile)
+    public void MoveTileTap(Tile tile)
     {
+        float dx = tile.mapPos.x - occupiedTile.mapPos.x;
+        float dy = tile.mapPos.y - occupiedTile.mapPos.y;
+        if (Mathf.Abs(dx) > Mathf.Abs(dy))
+        {
+            if (dx > 0) Rotate(0);
+            else Rotate(2);
+        }
+        else
+        {
+            if (dy > 0) Rotate(3);
+            else Rotate(1);
+        }
+        if (Mathf.Abs(dx) > 1 || Mathf.Abs(dy) > 1 || (Mathf.Abs(dx) == 1 && Mathf.Abs(dy) == 1)) return;
         if (!tile.impassible && tile.unit == null && moveDelay <= 0.0f)
         {
-            occupiedTile.unit = null;
-            occupiedTile = tile;
-            tile.unit = this;
-            transform.position = tile.transform.position; //Jump directly to the tile for now
+            tileMap.MoveUnit(occupiedTile, tile, this);
             moveDelay = maxDelay;
         }
     }
 
     //Rotate to face direction and then attempt to move in that direction
     //Right = 0, up = 1, left = 2, down = 3
-    void MoveDirection(int direction)
+    public void MoveDirection(int direction)
     {
-        int xIndex = occupiedTile.index[0];
-        int yIndex = occupiedTile.index[1];
-        switch (direction)
+        if (direction < 0 || direction > 3) return;
+
+        int xPos = (int)occupiedTile.mapPos.x;
+        int yPos = (int)occupiedTile.mapPos.y;
+
+        Tile dest = tileMap.GetNeighbors(xPos,yPos)[direction];
+        if (dest == null) return;
+
+        if (moveDelay <= 0.0f)
         {
-            case 0:
-                transform.rotation = Quaternion.LookRotation(Vector3.right, Vector3.up);
-                playerDirection = 0;
-                if (xIndex < tileMap.mapWidth - 1 && !tileMap.map[xIndex + 1, yIndex].impassible && tileMap.map[xIndex + 1, yIndex].unit == null && moveDelay <= 0.0f)
-                {
-                    occupiedTile.unit = null;
-                    occupiedTile = tileMap.map[xIndex + 1, yIndex];
-                    tileMap.map[xIndex + 1, yIndex].unit = this;
-                    transform.position = tileMap.map[xIndex + 1, yIndex].transform.position;
-                    moveDelay = maxDelay;
-                }
-                break;
-            case 1:
-                transform.rotation = Quaternion.LookRotation(Vector3.forward, Vector3.up);
-                playerDirection = 1;
-                if (yIndex < tileMap.mapHeight - 1 && !tileMap.map[xIndex, yIndex + 1].impassible && tileMap.map[xIndex, yIndex + 1].unit == null && moveDelay <= 0.0f)
-                {
-                    occupiedTile.unit = null;
-                    occupiedTile = tileMap.map[xIndex, yIndex + 1];
-                    tileMap.map[xIndex, yIndex + 1].unit = this;
-                    transform.position = tileMap.map[xIndex, yIndex + 1].transform.position;
-                    moveDelay = maxDelay;
-                }
-                break;
-            case 2:
-                transform.rotation = Quaternion.LookRotation(Vector3.left, Vector3.up);
-                playerDirection = 2;
-                if (xIndex > 0 && !tileMap.map[xIndex - 1, yIndex].impassible && tileMap.map[xIndex - 1, yIndex].unit == null && moveDelay <= 0.0f)
-                {
-                    occupiedTile.unit = null;
-                    occupiedTile = tileMap.map[xIndex - 1, yIndex];
-                    tileMap.map[xIndex - 1, yIndex].unit = this;
-                    transform.position = tileMap.map[xIndex - 1, yIndex].transform.position;
-                    moveDelay = maxDelay;
-                }
-                break;
-            case 3:
-                transform.rotation = Quaternion.LookRotation(Vector3.back, Vector3.up);
-                playerDirection = 3;
-                if (yIndex > 0 && !tileMap.map[xIndex, yIndex - 1].impassible && tileMap.map[xIndex, yIndex - 1].unit == null && moveDelay <= 0.0f)
-                {
-                    occupiedTile.unit = null;
-                    occupiedTile = tileMap.map[xIndex, yIndex - 1];
-                    tileMap.map[xIndex, yIndex - 1].unit = this;
-                    transform.position = tileMap.map[xIndex, yIndex - 1].transform.position;
-                    moveDelay = maxDelay;
-                }
-                break;
-            default:
-                Debug.Log("Invalid direction, no movement taken.");
-                break;
+            Rotate(direction);
+
+            if (!dest.impassible && dest.unit == null)
+                tileMap.MoveUnit(occupiedTile, dest, this);
+
+            moveDelay = maxDelay;
         }
 
     }
@@ -112,29 +84,12 @@ public class Player : Unit {
     //Attack the tile in front of the player
     public override void Attack()
     {
-        int xIndex = occupiedTile.index[0];
-        int yIndex = occupiedTile.index[1];
-        switch (playerDirection)
-        {
-            case 0:
-                if (xIndex < tileMap.mapWidth - 1)
-                    tileMap.map[xIndex + 1, yIndex].Attacked();
-                break;
-            case 1:
-                if(yIndex < tileMap.mapHeight - 1)
-                    tileMap.map[xIndex, yIndex + 1].Attacked();
-                break;
-            case 2:
-                if (xIndex > 0)
-                    tileMap.map[xIndex - 1, yIndex].Attacked();
-                break;
-            case 3:
-                if (yIndex > 0)
-                    tileMap.map[xIndex, yIndex - 1].Attacked();
-                break;
-            default:
-                Debug.Log("Invalid direction, no attack made.");
-                break;
-        }
+        int xPos = (int)occupiedTile.mapPos.x;
+        int yPos = (int)occupiedTile.mapPos.y;
+
+        Tile target = tileMap.GetNeighbors(xPos, yPos)[direction];
+        if (target == null) return;
+
+        tileMap.DamageTile(target);
     }
 }

@@ -13,6 +13,7 @@ public class Unit : MonoBehaviour {
 
     public Tile occupiedTile;
     public TileMap tileMap;
+    public int direction;
 
 	void Start () {
 		
@@ -37,4 +38,9 @@ public class Unit : MonoBehaviour {
 
     }
 
+    public void Rotate(int dir)
+    {
+        transform.rotation = Quaternion.Euler(0, dir * 90, 0);
+        direction = dir;
+    }
 }

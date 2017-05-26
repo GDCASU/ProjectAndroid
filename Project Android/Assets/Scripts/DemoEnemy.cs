@@ -12,80 +12,60 @@ using UnityEngine;
 
 public class DemoEnemy : Unit {
 
-    private bool active;
-    private Color color;
+    public bool target = false;
+    private Color color {
+        get
+        {
+            return transform.Find("Model").GetComponent<Renderer>().material.color;
+        }
+        set
+        {
+            transform.Find("Model").GetComponent<Renderer>().material.color = value;
+        }
+    }
     private int randomInt;
     public float maxDelay;
     private float moveDelay;
 
 	void Start () {
-        color = GetComponent<Renderer>().material.color;
         if (maxDelay == 0)
             maxDelay = 1.0f;
-        moveDelay = maxDelay;
+        moveDelay = Random.Range(0, maxDelay);
     }
 	
 	void Update () {
         if (moveDelay <= 0.0f)
         {
-            int xIndex = occupiedTile.index[0];
-            int yIndex = occupiedTile.index[1];
-            randomInt = Random.Range((int)0, (int)9);
-            if (randomInt == 0) //Move right
+            int xPos = (int)occupiedTile.mapPos.x;
+            int yPos = (int)occupiedTile.mapPos.y;
+            int moveDir = Random.Range(0, 4);
+
+            Tile dest = tileMap.GetNeighbors(xPos, yPos)[moveDir];
+            if (dest == null) return;
+
+            Rotate(moveDir);
+
+            if (!dest.impassible && dest.unit == null)
             {
-                if (xIndex < tileMap.mapWidth - 1 && !tileMap.map[xIndex + 1, yIndex].impassible && tileMap.map[xIndex + 1, yIndex].unit == null)
-                {
-                    occupiedTile.unit = null;
-                    occupiedTile = tileMap.map[xIndex + 1, yIndex];
-                    tileMap.map[xIndex + 1, yIndex].unit = this;
-                    transform.position = tileMap.map[xIndex + 1, yIndex].transform.position;
-                }
+                tileMap.MoveUnit(occupiedTile, dest, this);
             }
-            else if (randomInt == 1) //Move up
-            {
-                if (yIndex < tileMap.mapHeight - 1 && !tileMap.map[xIndex, yIndex + 1].impassible && tileMap.map[xIndex, yIndex + 1].unit == null)
-                {
-                    occupiedTile.unit = null;
-                    occupiedTile = tileMap.map[xIndex, yIndex + 1];
-                    tileMap.map[xIndex, yIndex + 1].unit = this;
-                    transform.position = tileMap.map[xIndex, yIndex + 1].transform.position;
-                }
-            }
-            else if (randomInt == 2) //Move left
-            {
-                if (xIndex > 0 && !tileMap.map[xIndex - 1, yIndex].impassible && tileMap.map[xIndex - 1, yIndex].unit == null)
-                {
-                    occupiedTile.unit = null;
-                    occupiedTile = tileMap.map[xIndex - 1, yIndex];
-                    tileMap.map[xIndex - 1, yIndex].unit = this;
-                    transform.position = tileMap.map[xIndex - 1, yIndex].transform.position;
-                }
-            }
-            else if (randomInt == 3) //Move down
-            {
-                if (yIndex > 0 && !tileMap.map[xIndex, yIndex - 1].impassible && tileMap.map[xIndex, yIndex - 1].unit == null)
-                {
-                    occupiedTile.unit = null;
-                    occupiedTile = tileMap.map[xIndex, yIndex - 1];
-                    tileMap.map[xIndex, yIndex - 1].unit = this;
-                    transform.position = tileMap.map[xIndex, yIndex - 1].transform.position;
-                }
-            }
+
             moveDelay = maxDelay;
         }
+        moveDelay -= Time.deltaTime;
 	}
 
     public void SetActive()
     {
-        active = true;
+        target = true;
         color = Color.red;
     }
 
     public override void Damaged()
     {
-        if (active)
+        if (target)
         {
-            active = false;
+            target = false;
             color = Color.blue;
             //Signal another DemoEnemy to become active
         }
