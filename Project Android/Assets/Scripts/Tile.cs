@@ -2,23 +2,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Tile : MonoBehaviour {
-
+public class Tile : MonoBehaviour
+{
     public bool impassible;
     public Unit unit = null;
-    public int[] index = new int[2];
+    public Vector2 mapPos = Vector2.zero;
     public bool protoTarget; //prototype yellow target tile
+    public GameObject blockPrefab;
 
     public void SetColor(Color newColor)
     {
         GetComponent<Renderer>().material.color = newColor;
     }
 
-    //Flashes red when attacked and signals the occupying unit it was attacked if that unit exists
-    public void Attacked()
+    public void MakeBlock()
     {
-        //Flash red
-        if (unit != null)
-            unit.Damaged();
+        impassible = true;
+        Instantiate(blockPrefab, transform.position, transform.rotation).transform.SetParent(transform, true);
     }
 }
