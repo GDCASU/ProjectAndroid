@@ -19,6 +19,8 @@ public class Joystick : MonoBehaviour
     public string horizontalAxisName = "Horizontal"; // The name given to the horizontal axis for the cross platform input
     public string verticalAxisName = "Vertical"; // The name given to the vertical axis for the cross platform input
     public float DeadZone; //percentage of range in which movement not registered
+    public float diagZoneWidth;
+    public float moveRepeatDelay;
 
     public bool moved;
     public Vector2 delta;
@@ -31,13 +33,20 @@ public class Joystick : MonoBehaviour
     CrossPlatformInputManager.VirtualAxis m_HorizontalVirtualAxis; // Reference to the joystick in the cross platform input
     CrossPlatformInputManager.VirtualAxis m_VerticalVirtualAxis; // Reference to the joystick in the cross platform input
 
-    void OnEnable()
-    {
-        CreateVirtualAxes();
-    }
+    int holdDirection;
+    float holdTime;
 
     void Start()
     {
+        Transform catcher = transform.parent.parent.parent.Find("JoystickCatcher");
+        catcher.gameObject.SetActive(true);
+        catcher.GetComponent<JoystickCatcher>().joystick = this;
+        OnRectTransformDimensionsChange();
+    }
+
+    void OnEnable()
+    {
+        CreateVirtualAxes();
     }
 
     void UpdateVirtualAxes(Vector2 value)
@@ -75,22 +84,68 @@ public class Joystick : MonoBehaviour
         }
     }
 
-
-    public void Drag(BaseEventData d)
+    void Update()
     {
-        PointerEventData data = (PointerEventData)d;
+        if (moved)
+        {
+            //Find angle of joystick direction from +x axis
+            Vector2 offset = delta;
+            float angle = -Mathf.Atan2(offset.y, offset.x); //range [-PI, PI]
 
+            //Find width of orthogonal and diagonal zones
+            float diagWidth = diagZoneWidth * Mathf.Deg2Rad;
+            float orthWidth = (Mathf.PI / 2) - diagWidth;
+
+            if (angle < -orthWidth / 2) angle += Mathf.PI * 2; //fit range to [-orthwidth/2,2Pi-orthwidth/2]
+            float upperBound = -orthWidth / 2; //upper bound of each zone for checking against angle
+
+            //string[] directions = { "Right", "Up-Right", "Up", "Up-Left", "Left", "Down-Left", "Down", "Down-Right" };
+            for (int i = 0; i < 8; i++)
+            {
+                //alternate between adding an orthogonal and diagonal zone
+                if (i % 2 == 0) upperBound += orthWidth;
+                else upperBound += diagWidth;
+                if (angle <= upperBound)
+                {
+                    if (i % 2 == 0) //throw out diagonal inputs
+                    {
+                        if (holdDirection == i)
+                        {
+                            holdTime -= Time.deltaTime;
+                            if (holdTime < 0)
+                            {
+                                holdTime = moveRepeatDelay;
+                                Player player = Player.FindPlayer();
+                                if (player)
+                                    player.MoveDirection(i / 2);
+                            }
+                        }
+                        else
+                        {
+                            holdDirection = i;
+                            holdTime = 0;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+
+    public void Drag(PointerEventData data)
+    {
         Vector2 newPos = data.position - m_StartPos;
         newPos = newPos.normalized * Mathf.Clamp(newPos.magnitude, 0, MovementRange); //clamp magnitude to movementrange
         delta = newPos;
-        if (newPos.magnitude / MovementRange > DeadZone) moved = true; //only register as a move if it's a significant movement
+        moved = (newPos.magnitude / MovementRange > DeadZone); //only register as a move if it's a significant movement
         transform.position = newPos + m_StartPos;
         UpdateVirtualAxes(transform.position);
         
     }
 
 
-    public void PointerUp(BaseEventData d)
+    public void PointerUp(PointerEventData data)
     {
         ((RectTransform)transform).anchoredPosition = Vector2.zero;
         UpdateVirtualAxes(m_StartPos);
@@ -101,12 +156,12 @@ public class Joystick : MonoBehaviour
     }
 
 
-    public void PointerDown(BaseEventData d)
+    public void PointerDown(PointerEventData data)
     {
-        PointerEventData data = (PointerEventData)d;
         m_StartPos = data.position;
         transform.position = m_StartPos;
         GetComponent<Image>().enabled = true;
+        holdTime = 0;
 
         shadow.GetComponent<Image>().enabled = true;
         shadow.transform.position = m_StartPos;
@@ -127,6 +182,6 @@ public class Joystick : MonoBehaviour
 
     private void OnRectTransformDimensionsChange()
     {
-        MovementRange = (int)(((RectTransform)transform.parent).rect.width / 3);
+        MovementRange = (int)(((RectTransform)transform.parent.parent).rect.size.magnitude / 4);
     }
 }
