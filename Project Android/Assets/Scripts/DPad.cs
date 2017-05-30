@@ -85,6 +85,13 @@ public class DPad : MonoBehaviour
                 if (buttonHoldTime[(int)b] > buttonHoldRepeatTime)
                     buttonHoldTime[(int)b] = 0;
             }
+
+            if (GetButton(b))
+            {
+                Player player = Player.FindPlayer();
+                if (player)
+                    player.MoveDirection((int)b);
+            }
         }
     }
 

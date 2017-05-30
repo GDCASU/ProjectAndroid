@@ -92,4 +92,12 @@ public class Player : Unit
 
         tileMap.DamageTile(target);
     }
+
+
+    public static Player FindPlayer()
+    {
+        GameObject plyObj = GameObject.FindGameObjectWithTag("Player");
+        if (plyObj == null) return null;
+        return plyObj.GetComponent<Player>();
+    }
 }
