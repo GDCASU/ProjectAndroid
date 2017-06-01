@@ -12,7 +12,9 @@ using UnityEngine;
 
 public class DemoEnemy : Unit {
 
+
     public bool target = false;
+    public MovementPattern moveType = MovementPattern.Random;
     private Color color {
         get
         {
@@ -27,6 +29,8 @@ public class DemoEnemy : Unit {
     public float maxDelay;
     private float moveDelay;
 
+    private int moveVar;
+
 	void Start () {
         currentHealth = maxHealth;
 
@@ -40,7 +44,27 @@ public class DemoEnemy : Unit {
         {
             int xPos = (int)occupiedTile.mapPos.x;
             int yPos = (int)occupiedTile.mapPos.y;
-            int moveDir = Random.Range(0, 4);
+            
+            int moveDir = -1;
+
+            switch (moveType) {
+                case MovementPattern.Horizontal:
+                    moveDir = ((++moveVar) % 2) * 2; //0 or 2
+                    break;
+                case MovementPattern.Vertical:
+                    moveDir = ((++moveVar) % 2) * 2 + 1; //1 or 3
+                    break;
+                case MovementPattern.Ordinal:
+                    moveDir = (++moveVar) % 4; //0 or 1 or 2 or 3, progressing
+                    break;
+                case MovementPattern.Random:
+                    moveDir = Random.Range(0, 4);
+                    break;
+                default:
+                    moveDir = -1;
+                    break;
+            }
+            if (moveDir == -1) return; //invalid move
 
             Tile dest = tileMap.GetNeighbors(xPos, yPos)[moveDir];
             if (dest == null) return;
@@ -63,7 +87,7 @@ public class DemoEnemy : Unit {
                      }
                 }
             }
-
+        
             moveDelay = maxDelay;
         }
         moveDelay -= Time.deltaTime;
@@ -86,4 +110,12 @@ public class DemoEnemy : Unit {
             SetInactive();
         }
     }
+}
+
+public enum MovementPattern
+{
+    Horizontal,
+    Vertical,
+    Ordinal,
+    Random
 }

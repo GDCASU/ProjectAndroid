@@ -9,12 +9,6 @@ public class TileMap : MonoBehaviour
     public int mapWidth;
     public int mapHeight;
     [Header("Prototype Settings")]
-    public int numTargetsCase1;
-    public int numTargetsCase2;
-    public int numBlocksCase2;
-    public int numTargetsCase3;
-    public int numTargetsCase4;
-    public int numBlocksCase4;
     public int numTasks;
     public Text progressText;
     public Text instructionText;
@@ -30,6 +24,7 @@ public class TileMap : MonoBehaviour
     private int protoTargetMax = 0;
     private int protoTargetCounter = 0;
     private DemoEnemy[] enemies;
+    private Tile[] targetTiles;
 
     private void Start()
     {
@@ -64,45 +59,84 @@ public class TileMap : MonoBehaviour
 
     public void SetupTestCase()
     {
-        //spawn player in center
-        SpawnUnit(map[mapWidth / 2, mapHeight / 2], player);
-
+        int[] xPos;
+        int[] yPos;
         switch (protoTaskIndex)
         {
             case 1:
-                Tile target1 = RandomTile(true);
-                target1.protoTarget = true;
-                target1.SetColor(Color.yellow);
-                protoTargetCounter = numTargetsCase1;
+                //player
+                SpawnUnit(map[3, 3], player);
+                //target tiles
+                xPos = new int[] { 1, 4, 1, 5 };
+                yPos = new int[] { 1, 0, 3, 5 };
+                targetTiles = new Tile[xPos.Length];
+                for (int i = 0; i < xPos.Length; i++)
+                    targetTiles[i] = map[xPos[i], yPos[i]];
+                targetTiles[0].protoTarget = true;
+                targetTiles[0].SetColor(Color.yellow);
+                //other related setup
+                protoTargetCounter = xPos.Length;
                 if (instructionText) instructionText.text = "Step on the yellow tiles";
                 break;
             case 2:
-                for (int i = 0; i < numBlocksCase2; i++)
-                    RandomTile(true).MakeBlock();
-                Tile target2 = RandomTile(true);
-                target2.protoTarget = true;
-                target2.SetColor(Color.yellow);
-                protoTargetCounter = numTargetsCase2;
+                //player
+                SpawnUnit(map[2, 3], player);
+                //blocks
+                xPos = new int[] { 0, 5, 0, 2, 3, 4, 1, 1, 2, 4, 4 };
+                yPos = new int[] { 0, 0, 1, 1, 1, 2, 3, 4, 4, 4, 5 };
+                for (int i = 0; i < xPos.Length; i++)
+                    map[xPos[i], yPos[i]].MakeBlock();
+                //target tiles
+                xPos = new int[] { 0, 3, 4, 5 };
+                yPos = new int[] { 5, 2, 0, 5 };
+                targetTiles = new Tile[xPos.Length];
+                for (int i = 0; i < xPos.Length; i++)
+                    targetTiles[i] = map[xPos[i], yPos[i]];
+                targetTiles[0].protoTarget = true;
+                targetTiles[0].SetColor(Color.yellow);
+                //other stuff
+                protoTargetCounter = xPos.Length;
                 if (instructionText) instructionText.text = "Step on the yellow tiles";
                 break;
             case 3:
-                enemies = new DemoEnemy[numTargetsCase3];
-                for (int i = 0; i < numTargetsCase3; i++)
-                    enemies[i] = (DemoEnemy)SpawnUnit(RandomTile(true), enemy);
-
-                protoTargetCounter = numTargetsCase3;
-                enemies[protoTargetCounter - 1].SetActive();
+                //player
+                SpawnUnit(map[2, 2], player);
+                //enemies
+                xPos = new int[] { 1, 4, 0, 5, 3 };
+                yPos = new int[] { 0, 2, 4, 0, 5 };
+                MovementPattern[] moveBehaviors = { MovementPattern.Horizontal, MovementPattern.Ordinal, MovementPattern.Ordinal, MovementPattern.Vertical, MovementPattern.Horizontal };
+                enemies = new DemoEnemy[xPos.Length];
+                for (int i = 0; i < xPos.Length; i++)
+                {
+                    enemies[i] = (DemoEnemy)SpawnUnit(map[xPos[i], yPos[i]], enemy);
+                    enemies[i].moveType = moveBehaviors[i];
+                }
+                enemies[0].SetActive();
+                //other stuff
+                protoTargetCounter = xPos.Length;
                 if (instructionText) instructionText.text = "Attack the red enemies";
                 break;
             case 4:
-                for (int i = 0; i < numBlocksCase4; i++)
-                    RandomTile(true).MakeBlock();
-                enemies = new DemoEnemy[numTargetsCase4];
-                for (int i = 0; i < numTargetsCase4; i++)
-                    enemies[i] = (DemoEnemy)SpawnUnit(RandomTile(true), enemy);
-
-                protoTargetCounter = numTargetsCase4;
-                enemies[protoTargetCounter - 1].SetActive();
+                //player
+                SpawnUnit(map[3, 2], player);
+                //blocks
+                xPos = new int[] { 2, 3, 0, 3, 0, 1, 5, 2, 4, 0, 0, 3, 4 };
+                yPos = new int[] { 0, 0, 1, 1, 2, 2, 2, 3, 3, 4, 5, 5, 5 };
+                for (int i = 0; i < xPos.Length; i++)
+                    map[xPos[i], yPos[i]].MakeBlock();
+                //enemies
+                xPos = new int[] { 0, 5, 5, 0, 1 };
+                yPos = new int[] { 3, 1, 4, 0, 5 };
+                MovementPattern[] moveBehaviors2 = { MovementPattern.Horizontal, MovementPattern.Ordinal, MovementPattern.Vertical, MovementPattern.Horizontal, MovementPattern.Horizontal };
+                enemies = new DemoEnemy[xPos.Length];
+                for (int i = 0; i < xPos.Length; i++)
+                {
+                    enemies[i] = (DemoEnemy)SpawnUnit(map[xPos[i], yPos[i]], enemy);
+                    enemies[i].moveType = moveBehaviors2[i];
+                }
+                enemies[0].SetActive();
+                //other stuff
+                protoTargetCounter = xPos.Length;
                 if (instructionText) instructionText.text = "Attack the red enemies";
                 break;
             default:
@@ -137,7 +171,7 @@ public class TileMap : MonoBehaviour
             protoTargetCounter--;
             if (protoTargetCounter > 0)
             {
-                Tile target = RandomTile(true);
+                Tile target = targetTiles[protoTargetMax - protoTargetCounter];
                 target.protoTarget = true;
                 target.SetColor(Color.yellow);
             }
@@ -156,7 +190,7 @@ public class TileMap : MonoBehaviour
         {
             protoTargetCounter--;
             if (protoTargetCounter > 0)
-                enemies[protoTargetCounter - 1].SetActive();
+                enemies[protoTargetMax - protoTargetCounter].SetActive();
             if (progressText)
                 progressText.text = "Progress: " + (protoTargetMax - protoTargetCounter) + "/" + protoTargetMax;
             if (protoTargetCounter == 0) CompleteTask();
