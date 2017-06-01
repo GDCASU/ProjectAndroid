@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class TileMap : MonoBehaviour
 {
+
     [Header("Map Settings")]
     public int mapWidth;
     public int mapHeight;
@@ -182,14 +183,12 @@ public class TileMap : MonoBehaviour
         return true;
     }
 
-    public void DamageTile(Tile tile)
+    public void DamageTile(Tile tile, int damage, int sourceID)
     {
-        if (tile == null || tile.unit == null || !(tile.unit is DemoEnemy)) return;
+        if (tile == null || tile.unit == null || tile.unit.getID() == sourceID) return;
 
-
-        if (((DemoEnemy)tile.unit).target)
+        if (tile.unit is DemoEnemy && ((DemoEnemy)tile.unit).target)
         {
-            tile.unit.Damaged();
             protoTargetCounter--;
             if (protoTargetCounter > 0)
                 enemies[protoTargetMax - protoTargetCounter].SetActive();
@@ -197,6 +196,8 @@ public class TileMap : MonoBehaviour
                 progressText.text = "Progress: " + (protoTargetMax - protoTargetCounter) + "/" + protoTargetMax;
             if (protoTargetCounter == 0) CompleteTask();
         }
+
+        tile.unit.Damaged(damage, sourceID);
     }
 
     public void CompleteTask()

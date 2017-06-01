@@ -8,14 +8,21 @@ using UnityEngine;
  * Description:
     Demo enemy class. Has a 50% chance to move in a random direction or sit still every specified time interval.
     If attacked while active the enemy will become inactive and switch from red to blue. 
+
+ * Programmer: Edward Borroughs
+ * Date: 5/31/17
+ * Description:
+    Now always moves in a random direction and attacks the player if next to them after moving. Now also takes
+    damage from the player's attacks. 
  */
 
-public class DemoEnemy : Unit {
-
+public class DemoEnemy : Unit
+{
 
     public bool target = false;
     public MovementPattern moveType = MovementPattern.Random;
-    private Color color {
+    private Color color
+    {
         get
         {
             return transform.Find("Model").GetComponent<Renderer>().material.color;
@@ -31,21 +38,29 @@ public class DemoEnemy : Unit {
 
     private int moveVar;
 
-	void Start () {
+    void Start()
+    {
+        activeWeapon = 0;
+        weaponDamage = (new List<int> { 2 }).ToArray();
+        currentHealth = maxHealth;
+
         if (maxDelay == 0)
             maxDelay = 1.0f;
         moveDelay = Random.Range(0, maxDelay);
+        unitID = 0;
     }
-	
-	void Update () {
+
+    void Update()
+    {
         if (moveDelay <= 0.0f)
         {
             int xPos = (int)occupiedTile.mapPos.x;
             int yPos = (int)occupiedTile.mapPos.y;
-            
+
             int moveDir = -1;
 
-            switch (moveType) {
+            switch (moveType)
+            {
                 case MovementPattern.Horizontal:
                     moveDir = ((++moveVar) % 2) * 2; //0 or 2
                     break;
@@ -72,12 +87,26 @@ public class DemoEnemy : Unit {
             if (!dest.impassible && dest.unit == null)
             {
                 tileMap.MoveUnit(occupiedTile, dest, this);
+
+                //if the enemy moves next to a player, attack it
+                //tileMap.MoveUnit updates the occupiedTile field
+                xPos = (int)occupiedTile.mapPos.x;
+                yPos = (int)occupiedTile.mapPos.y;
+                Tile[] neighbors = tileMap.GetNeighbors(xPos, yPos);
+                for (int i = 0; i < 4; i++)
+                {
+                    if (neighbors[i] != null && neighbors[i].unit is Player)
+                    {
+                        Rotate(i);
+                        Attack();
+                    }
+                }
             }
-        
+
             moveDelay = maxDelay;
         }
         moveDelay -= Time.deltaTime;
-	}
+    }
 
     public void SetActive()
     {
@@ -85,13 +114,18 @@ public class DemoEnemy : Unit {
         color = Color.red;
     }
 
-    public override void Damaged()
+    public void SetInactive()
+    {
+        target = false;
+        color = Color.blue;
+    }
+
+    public override void Damaged(int damage, int sourceID)
     {
         if (target)
         {
-            target = false;
-            color = Color.blue;
-            //Signal another DemoEnemy to become active
+            base.Damaged(damage, sourceID);
+            SetInactive();
         }
     }
 }
