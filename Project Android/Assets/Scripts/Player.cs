@@ -14,10 +14,13 @@ using UnityEngine;
 public class Player : Unit
 {
     public float maxDelay;
+
     private float moveDelay;
 
     void Start()
     {
+        currentHealth = maxHealth;
+
         if (maxDelay == 0)
             maxDelay = 1.0f;
         moveDelay = maxDelay;
@@ -81,23 +84,15 @@ public class Player : Unit
 
     }
 
-    //Attack the tile in front of the player
-    public override void Attack()
-    {
-        int xPos = (int)occupiedTile.mapPos.x;
-        int yPos = (int)occupiedTile.mapPos.y;
-
-        Tile target = tileMap.GetNeighbors(xPos, yPos)[direction];
-        if (target == null) return;
-
-        tileMap.DamageTile(target);
-    }
-
-
     public static Player FindPlayer()
     {
         GameObject plyObj = GameObject.FindGameObjectWithTag("Player");
         if (plyObj == null) return null;
         return plyObj.GetComponent<Player>();
+    }
+
+    public override void KillUnit() {
+        base.KillUnit();
+        tileMap.instructionText.text="You Lose";
     }
 }

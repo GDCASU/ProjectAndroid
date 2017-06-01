@@ -32,6 +32,8 @@ public class DemoEnemy : Unit {
     private int moveVar;
 
 	void Start () {
+        currentHealth = maxHealth;
+
         if (maxDelay == 0)
             maxDelay = 1.0f;
         moveDelay = Random.Range(0, maxDelay);
@@ -72,6 +74,18 @@ public class DemoEnemy : Unit {
             if (!dest.impassible && dest.unit == null)
             {
                 tileMap.MoveUnit(occupiedTile, dest, this);
+
+                //if the enemy moves next to a player, attack it
+                //tileMap.MoveUnit updates the occupiedTile field
+                xPos = (int)occupiedTile.mapPos.x; 
+                yPos = (int)occupiedTile.mapPos.y;
+                Tile[] neighbors = tileMap.GetNeighbors(xPos, yPos);
+                for (int i=0; i < 4; i++) {
+                    if (neighbors[i] != null && neighbors[i].unit is Player) {
+                        Rotate(i);
+                        Attack();
+                     }
+                }
             }
         
             moveDelay = maxDelay;
@@ -85,13 +99,15 @@ public class DemoEnemy : Unit {
         color = Color.red;
     }
 
-    public override void Damaged()
-    {
-        if (target)
-        {
-            target = false;
-            color = Color.blue;
-            //Signal another DemoEnemy to become active
+    public void SetInactive() {
+        target = false;
+        color = Color.blue;
+    }
+
+    public override void Damaged(int damage = 0) {
+        if (target) {
+            base.Damaged(damage);
+            SetInactive();
         }
     }
 }
