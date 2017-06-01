@@ -13,27 +13,23 @@ using UnityEngine;
 
 public class Player : Unit
 {
-    public float maxDelay;
 
+    public float maxDelay;
     private float moveDelay;
 
     void Start()
     {
+        activeWeapon = 0; //0 = melee
+        weaponDamage = (new List<int> { 5 }).ToArray(); //melee = 5      
         currentHealth = maxHealth;
-
         if (maxDelay == 0)
             maxDelay = 1.0f;
         moveDelay = maxDelay;
+        unitID = 1;
     }
 
     void Update()
     {
-        //If a tile is tapped on screen, do 
-        //MoveTileTap(tile);
-        //Else if D-Pad is held, pressed, or the joystick is held do
-        //MoveDirection(direction);         
-        //If attack button is pressed
-        //Attack();
         moveDelay -= Time.deltaTime;
     }
 
@@ -69,7 +65,7 @@ public class Player : Unit
         int xPos = (int)occupiedTile.mapPos.x;
         int yPos = (int)occupiedTile.mapPos.y;
 
-        Tile dest = tileMap.GetNeighbors(xPos,yPos)[direction];
+        Tile dest = tileMap.GetNeighbors(xPos, yPos)[direction];
         if (dest == null) return;
 
         if (moveDelay <= 0.0f)
@@ -91,8 +87,9 @@ public class Player : Unit
         return plyObj.GetComponent<Player>();
     }
 
-    public override void KillUnit() {
+    public override void KillUnit()
+    {
         base.KillUnit();
-        tileMap.instructionText.text="You Lose";
+        tileMap.instructionText.text = "You Lose";
     }
 }
