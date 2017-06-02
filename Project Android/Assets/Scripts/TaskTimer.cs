@@ -15,6 +15,8 @@ public class TaskTimer : MonoBehaviour {
 	//current task chosen
 	private int currentTask;
 
+    private bool paused = false;
+
 	// Use this for initialization
 	void Start () 
 	{
@@ -24,11 +26,12 @@ public class TaskTimer : MonoBehaviour {
 	// Update is called once per frame
 	void Update () 
 	{
+        if (paused) return;
 		// Add delta time to current time
 		currentTime += Time.deltaTime;
 		
 		//display current time
-		timeText.text = currentTime.ToString("0");
+		timeText.text = "Time: " + currentTime.ToString("0");
 	}
 	
 	public void resetTimer(){currentTime = 0.0f;}
@@ -38,5 +41,15 @@ public class TaskTimer : MonoBehaviour {
 		currentTask = thisTask; //assign new case
 		resetTimer(); //reset timer
 	}
+
+    public void pause()
+    {
+        paused = true;
+    }
+
+    public void unpause()
+    {
+        paused = false;
+    }
 	
 }

@@ -13,24 +13,23 @@ using UnityEngine;
 
 public class Player : Unit
 {
+
     public float maxDelay;
     private float moveDelay;
 
     void Start()
     {
+        activeWeapon = 0; //0 = melee
+        weaponDamage = (new List<int> { 5 }).ToArray(); //melee = 5      
+        currentHealth = maxHealth;
         if (maxDelay == 0)
             maxDelay = 1.0f;
         moveDelay = maxDelay;
+        unitID = 1;
     }
 
     void Update()
     {
-        //If a tile is tapped on screen, do 
-        //MoveTileTap(tile);
-        //Else if D-Pad is held, pressed, or the joystick is held do
-        //MoveDirection(direction);         
-        //If attack button is pressed
-        //Attack();
         moveDelay -= Time.deltaTime;
     }
 
@@ -66,7 +65,7 @@ public class Player : Unit
         int xPos = (int)occupiedTile.mapPos.x;
         int yPos = (int)occupiedTile.mapPos.y;
 
-        Tile dest = tileMap.GetNeighbors(xPos,yPos)[direction];
+        Tile dest = tileMap.GetNeighbors(xPos, yPos)[direction];
         if (dest == null) return;
 
         if (moveDelay <= 0.0f)
@@ -81,15 +80,16 @@ public class Player : Unit
 
     }
 
-    //Attack the tile in front of the player
-    public override void Attack()
+    public static Player FindPlayer()
     {
-        int xPos = (int)occupiedTile.mapPos.x;
-        int yPos = (int)occupiedTile.mapPos.y;
+        GameObject plyObj = GameObject.FindGameObjectWithTag("Player");
+        if (plyObj == null) return null;
+        return plyObj.GetComponent<Player>();
+    }
 
-        Tile target = tileMap.GetNeighbors(xPos, yPos)[direction];
-        if (target == null) return;
-
-        tileMap.DamageTile(target);
+    public override void KillUnit()
+    {
+        base.KillUnit();
+        tileMap.instructionText.text = "You Lose";
     }
 }

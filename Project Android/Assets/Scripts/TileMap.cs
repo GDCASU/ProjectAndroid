@@ -5,17 +5,15 @@ using UnityEngine.UI;
 
 public class TileMap : MonoBehaviour
 {
+
     [Header("Map Settings")]
     public int mapWidth;
     public int mapHeight;
     [Header("Prototype Settings")]
-    public int numTargetsCase1;
-    public int numTargetsCase2;
-    public int numBlocksCase2;
-    public int numTargetsCase3;
-    public int numTargetsCase4;
-    public int numBlocksCase4;
+    public int numTasks;
     public Text progressText;
+    public Text instructionText;
+    public TaskTimer timer;
     [Header("Prefabs")]
     public GameObject tilePrefab;
     public GameObject player;
@@ -24,8 +22,10 @@ public class TileMap : MonoBehaviour
     public Tile[,] map;
 
     private int protoTaskIndex;
+    private int protoTargetMax = 0;
     private int protoTargetCounter = 0;
     private DemoEnemy[] enemies;
+    private Tile[] targetTiles;
 
     private void Start()
     {
@@ -34,76 +34,124 @@ public class TileMap : MonoBehaviour
 
     public void SetupMap()
     {
+        CleanMap();
         map = new Tile[mapWidth, mapHeight];
         Vector3 offset = new Vector3(-mapWidth / 2, 0, -mapHeight / 2);
         for (int i = 0; i < mapWidth; i++)
             for (int j = 0; j < mapHeight; j++)
             {
                 map[i, j] = Instantiate(tilePrefab, new Vector3(i, 0, j) + offset, Quaternion.identity, transform).GetComponent<Tile>();
-                map[i, j].mapPos.x = i; 
+                map[i, j].mapPos.x = i;
                 map[i, j].mapPos.y = j;
             }
-                
+
 
         SetupTestCase();
     }
 
     public void CleanMap()
     {
-        for (int i = 0; i < mapWidth; i++)
-            for (int j = 0; j < mapHeight; j++)
-                Destroy(map[i, j].gameObject);
+        if (map != null)
+            for (int i = 0; i < mapWidth; i++)
+                for (int j = 0; j < mapHeight; j++)
+                    if (map[i, j])
+                        Destroy(map[i, j].gameObject);
     }
 
     public void SetupTestCase()
     {
-        //spawn player in center
-        SpawnUnit(map[mapWidth/2, mapHeight/2], player);
-
+        int[] xPos;
+        int[] yPos;
         switch (protoTaskIndex)
         {
             case 1:
-                Tile target1 = RandomTile(true);
-                target1.protoTarget = true;
-                target1.SetColor(Color.yellow);
-                protoTargetCounter = numTargetsCase1;
+                //player
+                SpawnUnit(map[3, 3], player);
+                //target tiles
+                xPos = new int[] { 1, 4, 1, 5 };
+                yPos = new int[] { 1, 0, 3, 5 };
+                targetTiles = new Tile[xPos.Length];
+                for (int i = 0; i < xPos.Length; i++)
+                    targetTiles[i] = map[xPos[i], yPos[i]];
+                targetTiles[0].protoTarget = true;
+                targetTiles[0].SetColor(Color.yellow);
+                //other related setup
+                protoTargetCounter = xPos.Length;
+                if (instructionText) instructionText.text = "Step on the yellow tiles";
                 break;
             case 2:
-                for (int i = 0; i < numBlocksCase2; i++)
-                    RandomTile(true).MakeBlock();
-                Tile target2 = RandomTile(true);
-                target2.protoTarget = true;
-                target2.SetColor(Color.yellow);
-                protoTargetCounter = numTargetsCase2;
+                //player
+                SpawnUnit(map[2, 3], player);
+                //blocks
+                xPos = new int[] { 0, 5, 0, 2, 3, 4, 1, 1, 2, 4, 4 };
+                yPos = new int[] { 0, 0, 1, 1, 1, 2, 3, 4, 4, 4, 5 };
+                for (int i = 0; i < xPos.Length; i++)
+                    map[xPos[i], yPos[i]].MakeBlock();
+                //target tiles
+                xPos = new int[] { 0, 3, 4, 5 };
+                yPos = new int[] { 5, 2, 0, 5 };
+                targetTiles = new Tile[xPos.Length];
+                for (int i = 0; i < xPos.Length; i++)
+                    targetTiles[i] = map[xPos[i], yPos[i]];
+                targetTiles[0].protoTarget = true;
+                targetTiles[0].SetColor(Color.yellow);
+                //other stuff
+                protoTargetCounter = xPos.Length;
+                if (instructionText) instructionText.text = "Step on the yellow tiles";
                 break;
             case 3:
-                enemies = new DemoEnemy[numTargetsCase3];
-                for (int i = 0; i < numTargetsCase3; i++)
-                    enemies[i] = (DemoEnemy)SpawnUnit(RandomTile(true), enemy);
-
-                protoTargetCounter = numTargetsCase3;
-                enemies[protoTargetCounter - 1].SetActive();
+                //player
+                SpawnUnit(map[2, 2], player);
+                //enemies
+                xPos = new int[] { 1, 4, 0, 5, 3 };
+                yPos = new int[] { 0, 2, 4, 0, 5 };
+                MovementPattern[] moveBehaviors = { MovementPattern.Horizontal, MovementPattern.Ordinal, MovementPattern.Ordinal, MovementPattern.Vertical, MovementPattern.Horizontal };
+                enemies = new DemoEnemy[xPos.Length];
+                for (int i = 0; i < xPos.Length; i++)
+                {
+                    enemies[i] = (DemoEnemy)SpawnUnit(map[xPos[i], yPos[i]], enemy);
+                    enemies[i].moveType = moveBehaviors[i];
+                }
+                enemies[0].SetActive();
+                //other stuff
+                protoTargetCounter = xPos.Length;
+                if (instructionText) instructionText.text = "Attack the red enemies";
                 break;
             case 4:
-                for (int i = 0; i < numBlocksCase4; i++)
-                    RandomTile(true).MakeBlock();
-                enemies = new DemoEnemy[numTargetsCase4];
-                for (int i = 0; i < numTargetsCase4; i++)
-                    enemies[i] = (DemoEnemy)SpawnUnit(RandomTile(true), enemy);
-
-                protoTargetCounter = numTargetsCase4;
-                enemies[protoTargetCounter - 1].SetActive();
+                //player
+                SpawnUnit(map[3, 2], player);
+                //blocks
+                xPos = new int[] { 2, 3, 0, 3, 0, 1, 5, 2, 4, 0, 0, 3, 4 };
+                yPos = new int[] { 0, 0, 1, 1, 2, 2, 2, 3, 3, 4, 5, 5, 5 };
+                for (int i = 0; i < xPos.Length; i++)
+                    map[xPos[i], yPos[i]].MakeBlock();
+                //enemies
+                xPos = new int[] { 0, 5, 5, 0, 1 };
+                yPos = new int[] { 3, 1, 4, 0, 5 };
+                MovementPattern[] moveBehaviors2 = { MovementPattern.Horizontal, MovementPattern.Ordinal, MovementPattern.Vertical, MovementPattern.Horizontal, MovementPattern.Horizontal };
+                enemies = new DemoEnemy[xPos.Length];
+                for (int i = 0; i < xPos.Length; i++)
+                {
+                    enemies[i] = (DemoEnemy)SpawnUnit(map[xPos[i], yPos[i]], enemy);
+                    enemies[i].moveType = moveBehaviors2[i];
+                }
+                enemies[0].SetActive();
+                //other stuff
+                protoTargetCounter = xPos.Length;
+                if (instructionText) instructionText.text = "Attack the red enemies";
                 break;
             default:
                 break;
         }
-        progressText.text = protoTargetCounter.ToString();
+        protoTargetMax = protoTargetCounter;
+        if (progressText)
+            progressText.text = "Progress: 0/" + protoTargetMax;
+        if (timer) timer.resetTimer();
     }
 
     public void ChangeTestCase(int newCase)
     {
         protoTaskIndex = newCase;
-        CleanMap();
         SetupMap();
     }
 
@@ -116,7 +164,7 @@ public class TileMap : MonoBehaviour
         unit.transform.SetParent(newTile.transform, true);
         unit.occupiedTile = newTile;
         unit.transform.position = newTile.transform.position;
-        
+
         if (newTile.protoTarget)
         {
             newTile.protoTarget = false;
@@ -124,33 +172,59 @@ public class TileMap : MonoBehaviour
             protoTargetCounter--;
             if (protoTargetCounter > 0)
             {
-                Tile target = RandomTile(true);
+                Tile target = targetTiles[protoTargetMax - protoTargetCounter];
                 target.protoTarget = true;
                 target.SetColor(Color.yellow);
             }
-            progressText.text = protoTargetCounter.ToString();
+            if (progressText)
+                progressText.text = "Progress: " + (protoTargetMax - protoTargetCounter) + "/" + protoTargetMax;
+            if (protoTargetCounter == 0) CompleteTask();
         }
         return true;
     }
 
-    public void DamageTile(Tile tile)
+    public void DamageTile(Tile tile, int damage, int sourceID)
     {
-        if (tile == null || tile.unit == null || !(tile.unit is DemoEnemy)) return;
+        if (tile == null || tile.unit == null || tile.unit.getID() == sourceID) return;
 
-        
-        if (((DemoEnemy)tile.unit).target)
+        if (tile.unit is DemoEnemy && ((DemoEnemy)tile.unit).target)
         {
-            tile.unit.Damaged();
             protoTargetCounter--;
             if (protoTargetCounter > 0)
-                enemies[protoTargetCounter - 1].SetActive();
-            progressText.text = protoTargetCounter.ToString();
+                enemies[protoTargetMax - protoTargetCounter].SetActive();
+            if (progressText)
+                progressText.text = "Progress: " + (protoTargetMax - protoTargetCounter) + "/" + protoTargetMax;
+            if (protoTargetCounter == 0) CompleteTask();
+        }
+
+        tile.unit.Damaged(damage, sourceID);
+    }
+
+    public void CompleteTask()
+    {
+        timer.pause();
+        if (protoTaskIndex >= numTasks)
+            instructionText.text = "All tasks completed. Returning to main screen...";
+        else
+            instructionText.text = "Task complete. Moving to next...";
+        StartCoroutine(NextTask());
+    }
+
+    IEnumerator NextTask()
+    {
+        yield return new WaitForSeconds(3);
+        timer.unpause();
+        if (protoTaskIndex >= numTasks) GameObject.FindWithTag("Overlord").GetComponent<Overlord>().TasksCompleted();
+        else
+        {
+            ChangeTestCase(protoTaskIndex + 1);
+            SetupMap();
         }
     }
 
     public Unit SpawnUnit(Tile tile, GameObject unit)
     {
-        GameObject spawn = Instantiate(unit, tile.transform.position, Quaternion.Euler(0,270,0));
+        GameObject spawn = Instantiate(unit, tile.transform.position, Quaternion.Euler(0, 270, 0));
         tile.unit = spawn.GetComponent<Unit>();
         tile.unit.transform.SetParent(tile.transform, true);
         tile.unit.occupiedTile = tile;
@@ -187,7 +261,7 @@ public class TileMap : MonoBehaviour
         Tile[] res = new Tile[4]; // 0 = right, 1 = down, 2 = left, 3 = up
         Vector2 pos = new Vector2(xPos, yPos);
         Vector2[] dirMap = { new Vector2(1, 0), new Vector2(0, -1), new Vector2(-1, 0), new Vector2(0, 1) };
-        for(int i=0; i<4; i++)
+        for (int i = 0; i < 4; i++)
         {
             Vector2 target = pos + dirMap[i];
             if (ValidPos((int)target.x, (int)target.y))
