@@ -6,6 +6,7 @@ public class Tile : MonoBehaviour
 {
     public bool impassible;
     public Unit unit = null;
+    public Item item = null;
     public Vector2 mapPos = Vector2.zero;
     public bool protoTarget; //prototype yellow target tile
     public GameObject blockPrefab;

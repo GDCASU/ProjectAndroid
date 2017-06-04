@@ -20,17 +20,16 @@ public class Unit : MonoBehaviour
     public Tile occupiedTile;
     public TileMap tileMap;
     public int direction;
+    protected Inventory inventory;
     [Header("Health and Damage")]
     public RectTransform healthBar;
     public int maxHealth;
     protected int currentHealth;
-    public int activeWeapon;
-    public int[] weaponDamage;
+    
 
     //UnitID is the "team" of the unit. Units on the same team can't damage eachother. 
     //Enemies have an ID of 0, the player has an ID of 1.
     protected int unitID;
-
 
     void Start()
     {
@@ -52,15 +51,14 @@ public class Unit : MonoBehaviour
 
     }
 
-    public virtual void Attack()
+    public virtual void SwordAttack()
     {
-        int xPos = (int)occupiedTile.mapPos.x;
-        int yPos = (int)occupiedTile.mapPos.y;
+        inventory.activeSword.PerformAttack(GetTarget());
+    }
 
-        Tile target = tileMap.GetNeighbors(xPos, yPos)[direction];
-        if (target == null) return;
-
-        tileMap.DamageTile(target, weaponDamage[activeWeapon], unitID);
+    public virtual void GunAttack()
+    {
+        inventory.activeGun.PerformAttack(GetTarget());
     }
 
     public virtual void Damaged(int damage, int sourceID)
@@ -75,12 +73,15 @@ public class Unit : MonoBehaviour
             }
         }
     }
-
-    public virtual int getDamage()
+    public void SetInventory(Inventory inv)
     {
-        //TODO for now just returns whatever the value of unitDamage is
-        //in the future, something like activeItem.damageValue
-        return weaponDamage[activeWeapon];
+        inventory = inv;
+        inventory.SetUnit(this);
+    }
+
+    public Inventory GetInventory()
+    {
+        return inventory;
     }
 
     public virtual int getID()
@@ -103,5 +104,14 @@ public class Unit : MonoBehaviour
     {
         transform.rotation = Quaternion.Euler(0, dir * 90, 0);
         direction = dir;
+    }
+
+    protected virtual Tile GetTarget()
+    {
+        int xPos = (int)occupiedTile.mapPos.x;
+        int yPos = (int)occupiedTile.mapPos.y;
+
+        Tile target = tileMap.GetNeighbors(xPos, yPos)[direction];
+        return target;
     }
 }
