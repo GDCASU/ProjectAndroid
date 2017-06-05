@@ -4,14 +4,14 @@ using UnityEngine;
 
 public class Inventory : MonoBehaviour {
 
-    /*
-    * Programmer: Michael Nahom
-    * Date: 6/4/17
-    * Description:
-        Inventory class. Should always be attached to a unit.
-        Provides methods for adding to, removing from the inventory.
-        Also tracks the currently active weapon of each type (gun and sword)
-    */
+/*
+ * Programmer: Michael Nahom
+ * Date: 6/4/17
+ * Description:
+     Inventory class. Should always be attached to a unit.
+     Provides methods for adding to, removing from the inventory.
+     Also tracks the currently active weapon of each type (gun and sword)
+ */
 
     public Item activeSword;
     public Item activeGun;

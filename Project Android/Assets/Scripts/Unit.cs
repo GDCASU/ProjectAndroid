@@ -73,6 +73,12 @@ public class Unit : MonoBehaviour
             }
         }
     }
+    public virtual void Healed(int health)
+    {
+        currentHealth = currentHealth + health;
+        if (currentHealth >= maxHealth) currentHealth = maxHealth;
+    }
+
     public void SetInventory(Inventory inv)
     {
         inventory = inv;

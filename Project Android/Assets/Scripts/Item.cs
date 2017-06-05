@@ -4,14 +4,14 @@ using UnityEngine;
 
 public class Item : MonoBehaviour {
 
-    /*
-    * Programmer: Michael Nahom
-    * Date: 6/4/17
-    * Description:
-        Item class. May or may not be part of an Inventory
-        Provides helper methods for adding to, removing from an inventory.
-        Also tracks the currently active weapon of each type (gun and sword)
-    */
+/*
+ * Programmer: Michael Nahom
+ * Date: 6/4/17
+ * Description:
+     Item class. May or may not be part of an Inventory
+     Provides helper methods for adding to, removing from an inventory.
+     Also tracks the currently active weapon of each type (gun and sword)
+*/
     
     protected Inventory inventory;
     protected bool onMap;
