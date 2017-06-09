@@ -29,111 +29,79 @@ public class SimpleRangedEnemy : Unit
             transform.Find("Model").GetComponent<Renderer>().material.color = value;
         }
     }
+
     private int randomInt;
-    public float maxDelay;
-    private float moveDelay;
     private bool fleeing;
 
     private int moveVar;
 
     void Start()
     {
-        activeWeapon = 0;
-        weaponDamage = (new List<int> { 1 }).ToArray();
+        equippedWeapon = new Weapon(1, 4, "Simple Gun");
         currentHealth = maxHealth;
-
-        if (maxDelay == 0)
-            maxDelay = 1.0f;
-        moveDelay = Random.Range(0, maxDelay);
         unitID = 0;
     }
 
-    void Update()
+    public override void Move()
     {
-        if (moveDelay <= 0.0f)
-        {
-            fleeing = false;
-            int xPos = (int)occupiedTile.mapPos.x;
-            int yPos = (int)occupiedTile.mapPos.y;
-            int playerXPos = (int)Player.FindPlayer().occupiedTile.mapPos.x;
-            int playerYPos = (int)Player.FindPlayer().occupiedTile.mapPos.y;
-            int manhattanDistance = Mathf.Abs(xPos - playerXPos) + Mathf.Abs(yPos - playerYPos);
-
-            if (manhattanDistance > 3)
-            {
-                int moveDir = occupiedTile.direction;
-
-                if (moveDir == -1) return; //invalid move
-
-                Tile dest = tileMap.GetNeighbors(xPos, yPos)[moveDir];
-                if (dest == null) return;
-
-                Rotate(moveDir);
-
-                if (!dest.impassible && dest.unit == null)
-                    tileMap.MoveUnit(occupiedTile, dest, this);
-            }
-
-            else if (manhattanDistance < 3)
-            {
-                fleeing = true;
-                int moveDir = (occupiedTile.direction + 2) % 4;
-
-                if (moveDir == -1) return; //invalid move
-
-                Tile dest = tileMap.GetNeighbors(xPos, yPos)[moveDir];
-                if (dest == null) return;
-
-                Rotate(moveDir);
-
-                if (!dest.impassible && dest.unit == null)
-                    tileMap.MoveUnit(occupiedTile, dest, this);
-            }
-
-            if (!fleeing)
-            {
-                if (xPos == playerXPos)
-                {
-                    if (yPos > playerYPos)
-                        direction = 1;
-                    else
-                        direction = 3;
-                    Attack();
-                }
-
-                else if (yPos == playerYPos)
-                {
-                    if (xPos > playerXPos)
-                        direction = 2;
-                    else
-                        direction = 0;
-                    Attack();
-                }
-            }
-
-            moveDelay = maxDelay;
-        }
-        moveDelay -= Time.deltaTime;
-    }
-
-    public override void Attack()
-    {
+        fleeing = false;
         int xPos = (int)occupiedTile.mapPos.x;
         int yPos = (int)occupiedTile.mapPos.y;
+        int playerXPos = (int)Player.FindPlayer().occupiedTile.mapPos.x;
+        int playerYPos = (int)Player.FindPlayer().occupiedTile.mapPos.y;
+        int manhattanDistance = Mathf.Abs(xPos - playerXPos) + Mathf.Abs(yPos - playerYPos);
 
-        Tile target = tileMap.GetNeighbors(xPos, yPos)[direction];
-        while (target && !target.impassible)
+        if (manhattanDistance > 3)
         {
-            if (target.unit)
+            int moveDir = occupiedTile.direction;
+
+            if (moveDir == -1) return; //invalid move
+
+            Tile dest = tileMap.GetNeighbors(xPos, yPos)[moveDir];
+            if (dest == null) return;
+
+            Rotate(moveDir);
+
+            if (!dest.impassible && dest.unit == null)
+                tileMap.MoveUnit(occupiedTile, dest, this);
+        }
+
+        else if (manhattanDistance < 3)
+        {
+            fleeing = true;
+            int moveDir = (occupiedTile.direction + 2) % 4;
+
+            if (moveDir == -1) return; //invalid move
+
+            Tile dest = tileMap.GetNeighbors(xPos, yPos)[moveDir];
+            if (dest == null) return;
+
+            Rotate(moveDir);
+
+            if (!dest.impassible && dest.unit == null)
+                tileMap.MoveUnit(occupiedTile, dest, this);
+        }
+
+        if (!fleeing)
+        {
+            if (xPos == playerXPos)
             {
-                tileMap.DamageTile(target, weaponDamage[activeWeapon], unitID);
-                return;
+                if (yPos > playerYPos)
+                    direction = 1;
+                else
+                    direction = 3;
+                Attack();
             }
 
-            xPos = (int)target.mapPos.x;
-            yPos = (int)target.mapPos.y;
-            target = tileMap.GetNeighbors(xPos, yPos)[direction];
+            else if (yPos == playerYPos)
+            {
+                if (xPos > playerXPos)
+                    direction = 2;
+                else
+                    direction = 0;
+                Attack();
+            }
         }
+        base.Move();
     }
-
 }

@@ -13,24 +13,25 @@ using UnityEngine;
 
 public class Player : Unit
 {
-
-    public float maxDelay;
-    private float moveDelay;
+    private bool canMove;
 
     void Start()
     {
-        activeWeapon = 0; //0 = melee, 1 = gun
-        weaponDamage = (new List<int> { 5 , 4 }).ToArray(); //melee = 5, gun = 4 
+        Weapon sword = new Weapon(5, 1, "Sword"); //5 damage, 1 range
+        Weapon gun = new Weapon(3, 5, "Gun"); //4 damage, 5 range
+        equippedWeapon = sword;
+        GetComponent<Inventory>().AddToInventory(sword);
+        GetComponent<Inventory>().AddToInventory(gun);
         currentHealth = maxHealth;
-        if (maxDelay == 0)
-            maxDelay = 1.0f;
-        moveDelay = maxDelay;
         unitID = 1;
+        canMove = true;
     }
 
-    void Update()
+    public void EquipWeapon(string weapon)
     {
-        moveDelay -= Time.deltaTime;
+        Weapon wep = (Weapon)inventory.GetContents().Find(w => w.itemName == weapon);
+        if (wep != null)
+            equippedWeapon = wep;
     }
 
     //Move directly to a tapped tile
@@ -49,13 +50,14 @@ public class Player : Unit
             else Rotate(1);
         }
         if (Mathf.Abs(dx) > 1 || Mathf.Abs(dy) > 1 || (Mathf.Abs(dx) == 1 && Mathf.Abs(dy) == 1)) return;
-        if (!tile.impassible && tile.unit == null && moveDelay <= 0.0f)
+        if (!tile.impassible && tile.unit == null && (canMove || tileMap.turnBased))
         {
             tileMap.MoveUnit(occupiedTile, tile, this);
 
             tileMap.BFSPathFinding((int)occupiedTile.mapPos.x, (int)occupiedTile.mapPos.y);
 
-            moveDelay = maxDelay;
+            base.Move();
+            canMove = false;
         }
     }
 
@@ -71,7 +73,7 @@ public class Player : Unit
         Tile dest = tileMap.GetNeighbors(xPos, yPos)[direction];
         if (dest == null) return;
 
-        if (moveDelay <= 0.0f)
+        if (canMove || tileMap.turnBased)
         {
             Rotate(direction);
 
@@ -80,36 +82,15 @@ public class Player : Unit
 
             tileMap.BFSPathFinding((int)occupiedTile.mapPos.x, (int)occupiedTile.mapPos.y);
 
-            moveDelay = maxDelay;
+            base.Move();
+            canMove = false;
         }
 
     }
 
-    public override void Attack()
+    public override void Move()
     {
-        activeWeapon = 0;
-        base.Attack();
-    }
-
-    public void Shoot()
-    {
-        activeWeapon = 1;
-        int xPos = (int)occupiedTile.mapPos.x;
-        int yPos = (int)occupiedTile.mapPos.y;
-
-        Tile target = tileMap.GetNeighbors(xPos, yPos)[direction];
-        while (target && !target.impassible)
-        {
-            if (target.unit)
-            {
-                tileMap.DamageTile(target, weaponDamage[activeWeapon], unitID);
-                return;
-            }
-
-            xPos = (int)target.mapPos.x;
-            yPos = (int)target.mapPos.y;
-            target = tileMap.GetNeighbors(xPos, yPos)[direction];
-        }
+        canMove = true;
     }
 
     public static Player FindPlayer()

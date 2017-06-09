@@ -21,11 +21,13 @@ public class AttackButton : MonoBehaviour {
         if (player == null) return;
         if (type == 0)
         {
-            player.SwordAttack();
+            player.EquipWeapon("Sword");
+            player.Attack();
         }
         else if (type == 1)
         {
-            player.GunAttack();
+            player.EquipWeapon("Gun");
+            player.Attack();
         }
     }
 }

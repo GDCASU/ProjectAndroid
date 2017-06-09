@@ -2,34 +2,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Item : MonoBehaviour {
+public class Item {
 
-/*
- * Programmer: Michael Nahom
- * Date: 6/4/17
- * Description:
-     Item class. May or may not be part of an Inventory
-     Provides helper methods for adding to, removing from an inventory.
-     Also tracks the currently active weapon of each type (gun and sword)
-*/
-    
+    /*
+     * Programmer: Michael Nahom
+     * Date: 6/4/17
+     * Description:
+         Item class. May or may not be part of an Inventory
+         Provides helper methods for adding to, removing from an inventory.
+         Also tracks the currently active weapon of each type (gun and sword)
+    */
+    public string itemName;
+
     protected Inventory inventory;
     protected bool onMap;
     public Tile occupiedTile;
     protected TileMap tileMap;
-
-    void Start () {
-        if (gameObject != null && inventory == null)
-        {
-            //in case the item is added from the inspector window
-            //make sure to track the inventory it's in
-            SetInventory(gameObject.GetComponent<Inventory>());
-        }
-    }
-	
-	void Update () {
-		
-	}
 
     public bool PlaceOnTile(Tile target)
     {
@@ -103,11 +91,6 @@ public class Item : MonoBehaviour {
             return tileMap;
         }
         else return null;
-    }
-
-    public virtual void PerformAttack(Tile target)
-    {
-
     }
 
     public virtual void ApplyStatusEffect(Tile target)

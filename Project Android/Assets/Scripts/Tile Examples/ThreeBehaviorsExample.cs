@@ -14,13 +14,13 @@ using UnityEngine;
 public class ThreeBehaviorsExample : TileAPI{
     public int health;
 
-    public override void OnEnter(Object[] args = null)
+    public override void OnEnter()
     {
         tile.RotateUnit(Random.Range(0, 4));
         tile.PickUpItem();
     }
 
-    public override void OnExit(Object[] args = null)
+    public override void OnExit()
     {
         tile.HealUnit(health);
     }

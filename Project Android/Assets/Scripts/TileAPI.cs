@@ -26,11 +26,11 @@ public abstract class TileAPI : MonoBehaviour
         tile = gameObject.GetComponent<Tile>();
     }
 
-    public abstract void OnEnter(Object[] args = null);
+    public abstract void OnEnter();
     //called when a unit enters a tile
     //applied AFTER tile.unit is set to the occupying unit
 
-    public abstract void OnExit(Object[] args = null);
+    public abstract void OnExit();
     //called when a unit leaves a tile
     //applied BEFORE tile.unit is set to null
 }

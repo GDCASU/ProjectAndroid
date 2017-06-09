@@ -11,12 +11,12 @@ using UnityEngine;
 
 public class BasicTile : TileAPI
 {
-	public override void OnEnter(Object[] args = null)
+	public override void OnEnter()
     {
         return;
     }
 
-    public override void OnExit(Object[] args = null)
+    public override void OnExit()
     {
         return;
     }

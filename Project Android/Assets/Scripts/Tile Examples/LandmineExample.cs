@@ -14,7 +14,7 @@ public class LandmineExample : TileAPI {
     public int damage;
     private bool exploded = false;
 
-    public override void OnEnter(Object[] args = null)
+    public override void OnEnter()
     {
         if (!exploded)
         {
@@ -23,7 +23,7 @@ public class LandmineExample : TileAPI {
         }
     }
 
-    public override void OnExit(Object[] args = null)
+    public override void OnExit()
     {
         return;
     }
