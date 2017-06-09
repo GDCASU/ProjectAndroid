@@ -9,7 +9,7 @@ public class Overlord : MonoBehaviour {
 
     public GameObject[] controlButtons;
     public GameObject[] controls;
-    public GameObject attackButton;
+    public GameObject attackPanel;
     public bool leftHanded = false;
     public string titleScreenScene;
     public string testRoomScene;
@@ -98,7 +98,7 @@ public class Overlord : MonoBehaviour {
             Transform main = GameObject.Find("Canvas").transform.Find(leftHanded ? "RightControl" : "LeftControl").Find("Scaler");
             Transform atk = GameObject.Find("Canvas").transform.Find(leftHanded ? "LeftControl" : "RightControl").Find("Scaler");
             GameObject addedControl = Instantiate(controls[selectedControl], main);
-            Instantiate(attackButton, atk);
+            Instantiate(attackPanel, atk);
 
             if(scene.name == inGameScene)
             {

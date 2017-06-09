@@ -159,8 +159,12 @@ public class TileMap : MonoBehaviour
     {
         if (newTile.unit || newTile.impassible) return false;
 
+        oldTile.tileAPI.OnExit();
         oldTile.unit = null;
         newTile.unit = unit;
+        newTile.tileAPI.OnEnter();
+        //order is important for the tileAPI calls so that the unit is
+        //occupying the tile that the method is called on when it is called.
         unit.transform.SetParent(newTile.transform, true);
         unit.occupiedTile = newTile;
         unit.transform.position = newTile.transform.position;
@@ -198,6 +202,12 @@ public class TileMap : MonoBehaviour
         }
 
         tile.unit.Damaged(damage, sourceID);
+    }
+    public void HealTile(Tile tile, int health)
+    {
+        if (tile == null || tile.unit == null) return;
+
+        tile.unit.Healed(health);
     }
 
     public void CompleteTask()

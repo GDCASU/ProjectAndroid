@@ -40,8 +40,6 @@ public class DemoEnemy : Unit
 
     void Start()
     {
-        activeWeapon = 0;
-        weaponDamage = (new List<int> { 2 }).ToArray();
         currentHealth = maxHealth;
 
         if (maxDelay == 0)
@@ -98,7 +96,7 @@ public class DemoEnemy : Unit
                     if (neighbors[i] != null && neighbors[i].unit is Player)
                     {
                         Rotate(i);
-                        Attack();
+                        SwordAttack();
                     }
                 }
             }
