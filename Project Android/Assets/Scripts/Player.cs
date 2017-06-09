@@ -19,6 +19,8 @@ public class Player : Unit
 
     void Start()
     {
+        activeWeapon = 0; //0 = melee, 1 = gun
+        weaponDamage = (new List<int> { 5 , 4 }).ToArray(); //melee = 5, gun = 4 
         currentHealth = maxHealth;
         if (maxDelay == 0)
             maxDelay = 1.0f;
@@ -50,6 +52,9 @@ public class Player : Unit
         if (!tile.impassible && tile.unit == null && moveDelay <= 0.0f)
         {
             tileMap.MoveUnit(occupiedTile, tile, this);
+
+            tileMap.BFSPathFinding((int)occupiedTile.mapPos.x, (int)occupiedTile.mapPos.y);
+
             moveDelay = maxDelay;
         }
     }
@@ -73,9 +78,38 @@ public class Player : Unit
             if (!dest.impassible && dest.unit == null)
                 tileMap.MoveUnit(occupiedTile, dest, this);
 
+            tileMap.BFSPathFinding((int)occupiedTile.mapPos.x, (int)occupiedTile.mapPos.y);
+
             moveDelay = maxDelay;
         }
 
+    }
+
+    public override void Attack()
+    {
+        activeWeapon = 0;
+        base.Attack();
+    }
+
+    public void Shoot()
+    {
+        activeWeapon = 1;
+        int xPos = (int)occupiedTile.mapPos.x;
+        int yPos = (int)occupiedTile.mapPos.y;
+
+        Tile target = tileMap.GetNeighbors(xPos, yPos)[direction];
+        while (target && !target.impassible)
+        {
+            if (target.unit)
+            {
+                tileMap.DamageTile(target, weaponDamage[activeWeapon], unitID);
+                return;
+            }
+
+            xPos = (int)target.mapPos.x;
+            yPos = (int)target.mapPos.y;
+            target = tileMap.GetNeighbors(xPos, yPos)[direction];
+        }
     }
 
     public static Player FindPlayer()
