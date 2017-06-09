@@ -43,7 +43,7 @@ public class PlayerCamera : MonoBehaviour {
 	{
 		
 		//if camera mode is in follow camera mode
-		if(currentCameraMode == PlayerCameraMode.FOLLOW)
+		if(currentCameraMode == PlayerCameraMode.FOLLOW && player != null)
 		{
 			//keep main camera at certain distance(offset) from player game object
 			Camera.main.transform.position = player.gameObject.transform.position + offset;
