@@ -5,11 +5,12 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class Overlord : MonoBehaviour {
+public class Overlord : MonoBehaviour
+{
 
     public GameObject[] controlButtons;
     public GameObject[] controls;
-    public GameObject attackButton;
+    public GameObject attackPanel;
     public bool leftHanded = false;
     public string titleScreenScene;
     public string testRoomScene;
@@ -21,14 +22,16 @@ public class Overlord : MonoBehaviour {
 
     int[] controlOrder;
     static bool started = false;
+    bool turnBased;
 
 
-	void Awake() {
+    void Awake()
+    {
         if (started) Destroy(gameObject);
         started = true;
         DontDestroyOnLoad(gameObject);
         controlOrder = new int[controlButtons.Length];
-        for(int i=0; i<controlButtons.Length; i++)
+        for (int i = 0; i < controlButtons.Length; i++)
         {
             int j = Random.Range(0, i + 1);
             controlOrder[i] = controlOrder[j];
@@ -71,8 +74,9 @@ public class Overlord : MonoBehaviour {
         leftHanded = left;
     }
 
-    public void StartTasks()
+    public void StartTasks(bool tb)
     {
+        turnBased = tb;
         SceneManager.LoadScene(inGameScene);
     }
 
@@ -84,25 +88,27 @@ public class Overlord : MonoBehaviour {
     public void TasksCompleted()
     {
         SceneManager.LoadScene(titleScreenScene);
-        if(controlProgress < controls.Length)
+        if (controlProgress < controls.Length)
             controlProgress++;
     }
-	
+
     public void SceneChanged(Scene scene, LoadSceneMode mode)
     {
-        if(scene.name == "Prototype2Title")
+        if (scene.name == "Prototype2Title")
         {
             SetupControlButtons();
-        } else
+        }
+        else
         {
             Transform main = GameObject.Find("Canvas").transform.Find(leftHanded ? "RightControl" : "LeftControl").Find("Scaler");
             Transform atk = GameObject.Find("Canvas").transform.Find(leftHanded ? "LeftControl" : "RightControl").Find("Scaler");
             GameObject addedControl = Instantiate(controls[selectedControl], main);
-            Instantiate(attackButton, atk);
+            Instantiate(attackPanel, atk);
 
-            if(scene.name == inGameScene)
+            if (scene.name == inGameScene)
             {
                 GameObject.Find("TileMap").GetComponent<TileMap>().ChangeTestCase(1);
+                GameObject.Find("TileMap").GetComponent<TileMap>().turnBased = turnBased;
             }
             else
             {

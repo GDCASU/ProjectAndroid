@@ -13,24 +13,25 @@ using UnityEngine;
 
 public class Player : Unit
 {
-
-    public float maxDelay;
-    private float moveDelay;
+    private bool canMove;
 
     void Start()
     {
-        activeWeapon = 0; //0 = melee
-        weaponDamage = (new List<int> { 5 }).ToArray(); //melee = 5      
+        Weapon sword = new Weapon(5, 1, "Sword"); //5 damage, 1 range
+        Weapon gun = new Weapon(3, 5, "Gun"); //4 damage, 5 range
+        equippedWeapon = sword;
+        GetComponent<Inventory>().AddToInventory(sword);
+        GetComponent<Inventory>().AddToInventory(gun);
         currentHealth = maxHealth;
-        if (maxDelay == 0)
-            maxDelay = 1.0f;
-        moveDelay = maxDelay;
         unitID = 1;
+        canMove = true;
     }
 
-    void Update()
+    public void EquipWeapon(string weapon)
     {
-        moveDelay -= Time.deltaTime;
+        Weapon wep = (Weapon)inventory.GetContents().Find(w => w.itemName == weapon);
+        if (wep != null)
+            equippedWeapon = wep;
     }
 
     //Move directly to a tapped tile
@@ -49,10 +50,14 @@ public class Player : Unit
             else Rotate(1);
         }
         if (Mathf.Abs(dx) > 1 || Mathf.Abs(dy) > 1 || (Mathf.Abs(dx) == 1 && Mathf.Abs(dy) == 1)) return;
-        if (!tile.impassible && tile.unit == null && moveDelay <= 0.0f)
+        if (!tile.impassible && tile.unit == null && (canMove || tileMap.turnBased))
         {
             tileMap.MoveUnit(occupiedTile, tile, this);
-            moveDelay = maxDelay;
+
+            tileMap.BFSPathFinding((int)occupiedTile.mapPos.x, (int)occupiedTile.mapPos.y);
+
+            base.Move();
+            canMove = false;
         }
     }
 
@@ -68,16 +73,24 @@ public class Player : Unit
         Tile dest = tileMap.GetNeighbors(xPos, yPos)[direction];
         if (dest == null) return;
 
-        if (moveDelay <= 0.0f)
+        if (canMove || tileMap.turnBased)
         {
             Rotate(direction);
 
             if (!dest.impassible && dest.unit == null)
                 tileMap.MoveUnit(occupiedTile, dest, this);
 
-            moveDelay = maxDelay;
+            tileMap.BFSPathFinding((int)occupiedTile.mapPos.x, (int)occupiedTile.mapPos.y);
+
+            base.Move();
+            canMove = false;
         }
 
+    }
+
+    public override void Move()
+    {
+        canMove = true;
     }
 
     public static Player FindPlayer()

@@ -33,79 +33,68 @@ public class DemoEnemy : Unit
         }
     }
     private int randomInt;
-    public float maxDelay;
-    private float moveDelay;
 
     private int moveVar;
 
     void Start()
     {
-        activeWeapon = 0;
-        weaponDamage = (new List<int> { 2 }).ToArray();
         currentHealth = maxHealth;
-
-        if (maxDelay == 0)
-            maxDelay = 1.0f;
-        moveDelay = Random.Range(0, maxDelay);
+        equippedWeapon = new Weapon(1, 1, "Weak Sword");
         unitID = 0;
     }
 
-    void Update()
+    public override void Move()
     {
-        if (moveDelay <= 0.0f)
+        int xPos = (int)occupiedTile.mapPos.x;
+        int yPos = (int)occupiedTile.mapPos.y;
+
+        int moveDir = -1;
+
+        switch (moveType)
         {
-            int xPos = (int)occupiedTile.mapPos.x;
-            int yPos = (int)occupiedTile.mapPos.y;
+            case MovementPattern.Horizontal:
+                moveDir = ((++moveVar) % 2) * 2; //0 or 2
+                break;
+            case MovementPattern.Vertical:
+                moveDir = ((++moveVar) % 2) * 2 + 1; //1 or 3
+                break;
+            case MovementPattern.Ordinal:
+                moveDir = (++moveVar) % 4; //0 or 1 or 2 or 3, progressing
+                break;
+            case MovementPattern.Random:
+                moveDir = Random.Range(0, 4);
+                break;
+            default:
+                moveDir = -1;
+                break;
+        }
+        if (moveDir == -1) return; //invalid move
 
-            int moveDir = -1;
+        Tile dest = tileMap.GetNeighbors(xPos, yPos)[moveDir];
+        if (dest == null) return;
 
-            switch (moveType)
+        Rotate(moveDir);
+
+        if (!dest.impassible && dest.unit == null)
+        {
+            tileMap.MoveUnit(occupiedTile, dest, this);
+
+            //if the enemy moves next to a player, attack it
+            //tileMap.MoveUnit updates the occupiedTile field
+            xPos = (int)occupiedTile.mapPos.x;
+            yPos = (int)occupiedTile.mapPos.y;
+            Tile[] neighbors = tileMap.GetNeighbors(xPos, yPos);
+            for (int i = 0; i < 4; i++)
             {
-                case MovementPattern.Horizontal:
-                    moveDir = ((++moveVar) % 2) * 2; //0 or 2
-                    break;
-                case MovementPattern.Vertical:
-                    moveDir = ((++moveVar) % 2) * 2 + 1; //1 or 3
-                    break;
-                case MovementPattern.Ordinal:
-                    moveDir = (++moveVar) % 4; //0 or 1 or 2 or 3, progressing
-                    break;
-                case MovementPattern.Random:
-                    moveDir = Random.Range(0, 4);
-                    break;
-                default:
-                    moveDir = -1;
-                    break;
-            }
-            if (moveDir == -1) return; //invalid move
-
-            Tile dest = tileMap.GetNeighbors(xPos, yPos)[moveDir];
-            if (dest == null) return;
-
-            Rotate(moveDir);
-
-            if (!dest.impassible && dest.unit == null)
-            {
-                tileMap.MoveUnit(occupiedTile, dest, this);
-
-                //if the enemy moves next to a player, attack it
-                //tileMap.MoveUnit updates the occupiedTile field
-                xPos = (int)occupiedTile.mapPos.x;
-                yPos = (int)occupiedTile.mapPos.y;
-                Tile[] neighbors = tileMap.GetNeighbors(xPos, yPos);
-                for (int i = 0; i < 4; i++)
+                if (neighbors[i] != null && neighbors[i].unit is Player)
                 {
-                    if (neighbors[i] != null && neighbors[i].unit is Player)
-                    {
-                        Rotate(i);
-                        Attack();
-                    }
+                    Rotate(i);
+                    Attack();
                 }
             }
-
-            moveDelay = maxDelay;
         }
-        moveDelay -= Time.deltaTime;
+
+        base.Move();
     }
 
     public void SetActive()

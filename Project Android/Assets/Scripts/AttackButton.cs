@@ -4,12 +4,30 @@ using UnityEngine;
 
 public class AttackButton : MonoBehaviour {
 
-	public void Attack()
+    public void SwordAttack()
+    {
+        Attack(0);
+    }
+    public void GunAttack()
+    {
+        Attack(1);
+    }
+
+	private void Attack(byte type)
     {
         GameObject plyObj = GameObject.FindGameObjectWithTag("Player");
         if (plyObj == null) return;
         Player player = plyObj.GetComponent<Player>();
         if (player == null) return;
-        player.Attack();
+        if (type == 0)
+        {
+            player.EquipWeapon("Sword");
+            player.Attack();
+        }
+        else if (type == 1)
+        {
+            player.EquipWeapon("Gun");
+            player.Attack();
+        }
     }
 }

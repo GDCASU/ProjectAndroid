@@ -20,17 +20,27 @@ public class Unit : MonoBehaviour
     public Tile occupiedTile;
     public TileMap tileMap;
     public int direction;
+    protected Inventory inventory;
+    public float moveDelay;
+    public Weapon equippedWeapon;
     [Header("Health and Damage")]
     public RectTransform healthBar;
     public int maxHealth;
     protected int currentHealth;
-    public int activeWeapon;
-    public int[] weaponDamage;
+
+    protected float moveTimer;
+    
 
     //UnitID is the "team" of the unit. Units on the same team can't damage eachother. 
     //Enemies have an ID of 0, the player has an ID of 1.
     protected int unitID;
 
+    void Awake()
+    {
+        if (moveDelay == 0)
+            moveDelay = 1.0f;
+        moveTimer = Random.Range(0, moveDelay);
+    }
 
     void Start()
     {
@@ -47,20 +57,23 @@ public class Unit : MonoBehaviour
         healthBar.localScale = new Vector3((float)currentHealth / (float)maxHealth, 1, 1);
     }
 
+    public virtual void MoveUpdate()
+    {
+        if (moveTimer <= 0.0f)
+        {
+            Move();
+        }
+        moveTimer -= Time.deltaTime;
+    }
+
     public virtual void Move()
     {
-
+        moveTimer = moveDelay;
     }
 
     public virtual void Attack()
     {
-        int xPos = (int)occupiedTile.mapPos.x;
-        int yPos = (int)occupiedTile.mapPos.y;
-
-        Tile target = tileMap.GetNeighbors(xPos, yPos)[direction];
-        if (target == null) return;
-
-        tileMap.DamageTile(target, weaponDamage[activeWeapon], unitID);
+        equippedWeapon.PerformAttack(this, direction);
     }
 
     public virtual void Damaged(int damage, int sourceID)
@@ -75,12 +88,21 @@ public class Unit : MonoBehaviour
             }
         }
     }
-
-    public virtual int getDamage()
+    public virtual void Healed(int health)
     {
-        //TODO for now just returns whatever the value of unitDamage is
-        //in the future, something like activeItem.damageValue
-        return weaponDamage[activeWeapon];
+        currentHealth = currentHealth + health;
+        if (currentHealth >= maxHealth) currentHealth = maxHealth;
+    }
+
+    public void SetInventory(Inventory inv)
+    {
+        inventory = inv;
+        inventory.SetUnit(this);
+    }
+
+    public Inventory GetInventory()
+    {
+        return inventory;
     }
 
     public virtual int getID()
@@ -103,5 +125,14 @@ public class Unit : MonoBehaviour
     {
         transform.rotation = Quaternion.Euler(0, dir * 90, 0);
         direction = dir;
+    }
+
+    protected virtual Tile GetTarget()
+    {
+        int xPos = (int)occupiedTile.mapPos.x;
+        int yPos = (int)occupiedTile.mapPos.y;
+
+        Tile target = tileMap.GetNeighbors(xPos, yPos)[direction];
+        return target;
     }
 }
