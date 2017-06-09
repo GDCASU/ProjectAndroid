@@ -11,15 +11,29 @@ public class Tile : MonoBehaviour
     public Vector2 mapPos = Vector2.zero;
     public bool protoTarget; //prototype yellow target tile
     public GameObject blockPrefab;
-    [Header("Advanced API")]
-    public TileAPI tileAPI;
 
-    private delegate void tileAPIDel(Object[] args = null);
+    public delegate void TileEventHandler();
+    public event TileEventHandler Enter = delegate { };
+    public event TileEventHandler Exit = delegate { }; 
 
     public void Start()
     {
-        tileAPIDel onEnter = tileAPI.OnEnter;
-        tileAPIDel onExit = tileAPI.OnExit;
+        TileAPI api = GetComponent<TileAPI>();
+        if (api)
+        {
+            Enter += api.OnEnter;
+            Exit += api.OnExit;
+        }
+    }
+
+    public void OnEnter()
+    {
+        Enter();
+    }
+
+    public void OnExit()
+    {
+        Exit();
     }
 
     public void SetColor(Color newColor)

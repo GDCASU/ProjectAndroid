@@ -26,58 +26,47 @@ public class SimpleMeleeEnemy : Unit
             transform.Find("Model").GetComponent<Renderer>().material.color = value;
         }
     }
-    private int randomInt;
-    public float maxDelay;
-    private float moveDelay;
 
+    private int randomInt;
     private int moveVar;
 
     void Start()
     {
-        activeWeapon = 0;
-        weaponDamage = (new List<int> { 2 }).ToArray();
+        equippedWeapon = new Weapon(2, 1, "Simple Sword");
         currentHealth = maxHealth;
-
-        if (maxDelay == 0)
-            maxDelay = 1.0f;
-        moveDelay = Random.Range(0, maxDelay);
         unitID = 0;
     }
 
-    void Update()
+    public override void Move()
     {
-        if (moveDelay <= 0.0f)
+        int xPos = (int)occupiedTile.mapPos.x;
+        int yPos = (int)occupiedTile.mapPos.y;
+
+        int moveDir = occupiedTile.direction;
+
+        if (moveDir == -1) return; //invalid move
+
+        Tile dest = tileMap.GetNeighbors(xPos, yPos)[moveDir];
+        if (dest == null) return;
+
+        Rotate(moveDir);
+
+        if (!dest.impassible && dest.unit == null)
+            tileMap.MoveUnit(occupiedTile, dest, this);
+
+        xPos = (int)occupiedTile.mapPos.x;
+        yPos = (int)occupiedTile.mapPos.y;
+        Tile[] neighbors = tileMap.GetNeighbors(xPos, yPos);
+        for (int i = 0; i < 4; i++)
         {
-            int xPos = (int)occupiedTile.mapPos.x;
-            int yPos = (int)occupiedTile.mapPos.y;
-
-            int moveDir = occupiedTile.direction;
-
-            if (moveDir == -1) return; //invalid move
-
-            Tile dest = tileMap.GetNeighbors(xPos, yPos)[moveDir];
-            if (dest == null) return;
-
-            Rotate(moveDir);
-
-            if (!dest.impassible && dest.unit == null)
-                tileMap.MoveUnit(occupiedTile, dest, this);
-
-            xPos = (int)occupiedTile.mapPos.x;
-            yPos = (int)occupiedTile.mapPos.y;
-            Tile[] neighbors = tileMap.GetNeighbors(xPos, yPos);
-            for (int i = 0; i < 4; i++)
+            if (neighbors[i] != null && neighbors[i].unit is Player)
             {
-                if (neighbors[i] != null && neighbors[i].unit is Player)
-                {
-                    Rotate(i);
-                    Attack();
-                }
+                Rotate(i);
+                Attack();
             }
-
-            moveDelay = maxDelay;
         }
-        moveDelay -= Time.deltaTime;
+
+        base.Move();
     }
 
 }

@@ -16,9 +16,9 @@ public class TitleInputHandler : MonoBehaviour {
         overlord.SetLeftHanded(left);
     }
 
-    public void StartTasks()
+    public void StartTasks(bool turnbased)
     {
-        overlord.StartTasks();
+        overlord.StartTasks(turnbased);
     }
 
     public void EnterTestRoom()

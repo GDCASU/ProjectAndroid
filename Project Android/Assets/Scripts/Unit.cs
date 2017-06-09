@@ -21,15 +21,26 @@ public class Unit : MonoBehaviour
     public TileMap tileMap;
     public int direction;
     protected Inventory inventory;
+    public float moveDelay;
+    public Weapon equippedWeapon;
     [Header("Health and Damage")]
     public RectTransform healthBar;
     public int maxHealth;
     protected int currentHealth;
+
+    protected float moveTimer;
     
 
     //UnitID is the "team" of the unit. Units on the same team can't damage eachother. 
     //Enemies have an ID of 0, the player has an ID of 1.
     protected int unitID;
+
+    void Awake()
+    {
+        if (moveDelay == 0)
+            moveDelay = 1.0f;
+        moveTimer = Random.Range(0, moveDelay);
+    }
 
     void Start()
     {
@@ -46,19 +57,23 @@ public class Unit : MonoBehaviour
         healthBar.localScale = new Vector3((float)currentHealth / (float)maxHealth, 1, 1);
     }
 
+    public virtual void MoveUpdate()
+    {
+        if (moveTimer <= 0.0f)
+        {
+            Move();
+        }
+        moveTimer -= Time.deltaTime;
+    }
+
     public virtual void Move()
     {
-
+        moveTimer = moveDelay;
     }
 
-    public virtual void SwordAttack()
+    public virtual void Attack()
     {
-        inventory.activeSword.PerformAttack(GetTarget());
-    }
-
-    public virtual void GunAttack()
-    {
-        inventory.activeGun.PerformAttack(GetTarget());
+        equippedWeapon.PerformAttack(this, direction);
     }
 
     public virtual void Damaged(int damage, int sourceID)

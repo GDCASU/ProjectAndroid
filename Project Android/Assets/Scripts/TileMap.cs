@@ -14,10 +14,11 @@ public class TileMap : MonoBehaviour
     public Text progressText;
     public Text instructionText;
     public TaskTimer timer;
+    public bool turnBased;
     [Header("Prefabs")]
     public GameObject tilePrefab;
-    public GameObject player;
-    public GameObject enemy;
+    public GameObject playerPrefab;
+    public GameObject enemyPrefab;
 
     public Tile[,] map;
 
@@ -25,11 +26,23 @@ public class TileMap : MonoBehaviour
     private int protoTargetMax = 0;
     private int protoTargetCounter = 0;
     private DemoEnemy[] enemies;
+    private Player activePlayer;
     private Tile[] targetTiles;
 
     private void Start()
     {
         SetupMap();
+    }
+
+    void Update()
+    {
+        if(!turnBased && enemies != null)
+        {
+            for (int i = 0; i < enemies.Length; i++)
+                enemies[i].MoveUpdate();
+        }
+
+        activePlayer.GetComponent<Player>().MoveUpdate();
     }
 
     public void SetupMap()
@@ -66,7 +79,7 @@ public class TileMap : MonoBehaviour
         {
             case 1:
                 //player
-                SpawnUnit(map[3, 3], player);
+                activePlayer = (Player)SpawnUnit(map[3, 3], playerPrefab);
                 //target tiles
                 xPos = new int[] { 1, 4, 1, 5 };
                 yPos = new int[] { 1, 0, 3, 5 };
@@ -81,7 +94,7 @@ public class TileMap : MonoBehaviour
                 break;
             case 2:
                 //player
-                SpawnUnit(map[2, 3], player);
+                activePlayer = (Player)SpawnUnit(map[2, 3], playerPrefab);
                 //blocks
                 xPos = new int[] { 0, 5, 0, 2, 3, 4, 1, 1, 2, 4, 4 };
                 yPos = new int[] { 0, 0, 1, 1, 1, 2, 3, 4, 4, 4, 5 };
@@ -101,7 +114,7 @@ public class TileMap : MonoBehaviour
                 break;
             case 3:
                 //player
-                SpawnUnit(map[2, 2], player);
+                activePlayer = (Player)SpawnUnit(map[2, 2], playerPrefab);
                 //enemies
                 xPos = new int[] { 1, 4, 0, 5, 3 };
                 yPos = new int[] { 0, 2, 4, 0, 5 };
@@ -109,7 +122,7 @@ public class TileMap : MonoBehaviour
                 enemies = new DemoEnemy[xPos.Length];
                 for (int i = 0; i < xPos.Length; i++)
                 {
-                    enemies[i] = (DemoEnemy)SpawnUnit(map[xPos[i], yPos[i]], enemy);
+                    enemies[i] = (DemoEnemy)SpawnUnit(map[xPos[i], yPos[i]], enemyPrefab);
                     enemies[i].moveType = moveBehaviors[i];
                 }
                 enemies[0].SetActive();
@@ -119,7 +132,7 @@ public class TileMap : MonoBehaviour
                 break;
             case 4:
                 //player
-                SpawnUnit(map[3, 2], player);
+                activePlayer = (Player)SpawnUnit(map[3, 2], playerPrefab);
                 //blocks
                 xPos = new int[] { 2, 3, 0, 3, 0, 1, 5, 2, 4, 0, 0, 3, 4 };
                 yPos = new int[] { 0, 0, 1, 1, 2, 2, 2, 3, 3, 4, 5, 5, 5 };
@@ -132,7 +145,7 @@ public class TileMap : MonoBehaviour
                 enemies = new DemoEnemy[xPos.Length];
                 for (int i = 0; i < xPos.Length; i++)
                 {
-                    enemies[i] = (DemoEnemy)SpawnUnit(map[xPos[i], yPos[i]], enemy);
+                    enemies[i] = (DemoEnemy)SpawnUnit(map[xPos[i], yPos[i]], enemyPrefab);
                     enemies[i].moveType = moveBehaviors2[i];
                 }
                 enemies[0].SetActive();
@@ -159,32 +172,45 @@ public class TileMap : MonoBehaviour
     {
         if (newTile.unit || newTile.impassible) return false;
 
-        oldTile.tileAPI.OnExit();
+        oldTile.OnExit();
         oldTile.unit = null;
         newTile.unit = unit;
-        newTile.tileAPI.OnEnter();
+        newTile.OnEnter();
         //order is important for the tileAPI calls so that the unit is
         //occupying the tile that the method is called on when it is called.
         unit.transform.SetParent(newTile.transform, true);
         unit.occupiedTile = newTile;
         unit.transform.position = newTile.transform.position;
 
-        if (newTile.protoTarget)
+        if (unit is Player)
         {
-            newTile.protoTarget = false;
-            newTile.SetColor(Color.white);
-            protoTargetCounter--;
-            if (protoTargetCounter > 0)
+            if (newTile.protoTarget)
             {
-                Tile target = targetTiles[protoTargetMax - protoTargetCounter];
-                target.protoTarget = true;
-                target.SetColor(Color.yellow);
+                newTile.protoTarget = false;
+                newTile.SetColor(Color.white);
+                protoTargetCounter--;
+                if (protoTargetCounter > 0)
+                {
+                    Tile target = targetTiles[protoTargetMax - protoTargetCounter];
+                    target.protoTarget = true;
+                    target.SetColor(Color.yellow);
+                }
+                if (progressText)
+                    progressText.text = "Progress: " + (protoTargetMax - protoTargetCounter) + "/" + protoTargetMax;
+                if (protoTargetCounter == 0) CompleteTask();
             }
-            if (progressText)
-                progressText.text = "Progress: " + (protoTargetMax - protoTargetCounter) + "/" + protoTargetMax;
-            if (protoTargetCounter == 0) CompleteTask();
+            EnemyMoveStep();
         }
         return true;
+    }
+
+    public void EnemyMoveStep()
+    {
+        if (turnBased && enemies != null)
+        {
+            for (int i = 0; i < enemies.Length; i++)
+                enemies[i].Move();
+        }
     }
 
     public void DamageTile(Tile tile, int damage, int sourceID)
@@ -202,7 +228,10 @@ public class TileMap : MonoBehaviour
         }
 
         tile.unit.Damaged(damage, sourceID);
+
+        if (!(tile.unit is Player)) EnemyMoveStep(); //only move if player hit enemy - must change in future
     }
+
     public void HealTile(Tile tile, int health)
     {
         if (tile == null || tile.unit == null) return;

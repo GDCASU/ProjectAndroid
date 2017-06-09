@@ -12,9 +12,6 @@ public class Inventory : MonoBehaviour {
      Provides methods for adding to, removing from the inventory.
      Also tracks the currently active weapon of each type (gun and sword)
  */
-
-    public Item activeSword;
-    public Item activeGun;
     public int maxItems = 0; //zero for no limit
 
     private List<Item> contents = new List<Item>();
@@ -30,14 +27,6 @@ public class Inventory : MonoBehaviour {
             //make sure to track the unit it belongs to
             SetUnit(gameObject.GetComponent<Unit>());
             unit.SetInventory(this);
-        }
-        if (activeSword != null)
-        {
-            AddToInventory(activeSword);
-        }
-        if (activeGun != null)
-        {
-            AddToInventory(activeGun);
         }
     }
 	
@@ -79,20 +68,9 @@ public class Inventory : MonoBehaviour {
         return false;
     }
 
-    public void SetActiveSword(Item item)
+    public List<Item> GetContents()
     {
-        if (Contains(item))
-        {
-            activeSword = item;
-        }
-    }
-
-    public void SetActiveGun(Item item)
-    {
-        if (Contains(item))
-        {
-            activeGun = item;
-        }
+        return contents;
     }
 
     public void SetUnit(Unit u)
