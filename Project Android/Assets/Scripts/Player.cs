@@ -19,8 +19,6 @@ public class Player : Unit
 
     void Start()
     {
-        activeWeapon = 0; //0 = melee
-        weaponDamage = (new List<int> { 5 }).ToArray(); //melee = 5      
         currentHealth = maxHealth;
         if (maxDelay == 0)
             maxDelay = 1.0f;
