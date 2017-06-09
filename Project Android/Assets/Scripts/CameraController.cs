@@ -136,23 +136,23 @@ public class CameraController : MonoBehaviour {
 		rotateCameraZAxisBool = true;
 	}
 	
-	//function to only tilt main camera around x axis
+	//function to only tilt main camera around x axis, other axes don't change
 	private void TiltCameraAroundXAxis(float tiltAngle)
 	{
-		Camera.main.transform.localEulerAngles = new Vector3(tiltAngle,0.0f,0.0f);
+		Camera.main.transform.localEulerAngles = new Vector3(tiltAngle,yRotationCameraAngle,zRotationCameraAngle);
 	}
 	
 	
-	//function to only tilt main camera around y axis
+	//function to only tilt main camera around y axis, other axes don't change
 	private void TiltCameraAroundYAxis(float tiltAngle)
 	{
-		Camera.main.transform.localEulerAngles = new Vector3(0.0f,tiltAngle,0.0f);
+		Camera.main.transform.localEulerAngles = new Vector3(xRotationCameraAngle,tiltAngle,zRotationCameraAngle);
 	}
 	
-	//function to only tilt main camera around z axis
+	//function to only tilt main camera around z axis, other axes don't change
 	private void TiltCameraAroundZAxis(float tiltAngle)
 	{
-		Camera.main.transform.localEulerAngles = new Vector3(0.0f,0.0f,tiltAngle);
+		Camera.main.transform.localEulerAngles = new Vector3(xRotationCameraAngle,yRotationCameraAngle,tiltAngle);
 	}
 	
 	//public function to allow others to move camera in x axis
