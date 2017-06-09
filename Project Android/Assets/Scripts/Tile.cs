@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
+    public int direction;
     public bool impassible;
     public Unit unit = null;
     public Vector2 mapPos = Vector2.zero;

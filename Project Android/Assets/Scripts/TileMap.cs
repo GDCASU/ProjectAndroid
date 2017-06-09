@@ -235,7 +235,7 @@ public class TileMap : MonoBehaviour
 
     public bool ValidPos(int x, int y)
     {
-        if (x < 0 || x >= mapWidth || y < 0 || y >= mapHeight) return false;
+        if (x < 0 || x >= mapWidth || y < 0 || y >= mapHeight || map[x, y].impassible) return false;
         return true;
     }
 
@@ -270,5 +270,28 @@ public class TileMap : MonoBehaviour
                 res[i] = null;
         }
         return res;
+    }
+
+    public void BFSPathFinding(int xPos, int yPos)
+    {
+        Tile currentTile;
+        Tile[] neighbors = new Tile[4];       
+        List<Tile> tileList = new List<Tile>();
+        Queue<Tile> tileQueue = new Queue<Tile>();
+        map[xPos, yPos].direction = 0;
+        tileList.Add(map[xPos, yPos]);
+        tileQueue.Enqueue(map[xPos, yPos]);
+        while (tileQueue.Count > 0)
+        {
+            currentTile = tileQueue.Dequeue();
+            neighbors = GetNeighbors(currentTile);
+            for (int i = 0; i < 4; i++)
+                if (neighbors[i] && !tileList.Contains(neighbors[i]))
+                {
+                    tileList.Add(neighbors[i]);
+                    neighbors[i].direction = (i + 2) % 4;
+                    tileQueue.Enqueue(neighbors[i]);
+                }
+        }
     }
 }
