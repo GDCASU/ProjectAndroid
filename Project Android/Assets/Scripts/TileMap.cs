@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -41,8 +43,8 @@ public class TileMap : MonoBehaviour
             for (int i = 0; i < enemies.Length; i++)
                 enemies[i].MoveUpdate();
         }
-
-        activePlayer.GetComponent<Player>().MoveUpdate();
+        if(activePlayer)
+            activePlayer.GetComponent<Player>().MoveUpdate();
     }
 
     public void SetupMap()
@@ -332,5 +334,74 @@ public class TileMap : MonoBehaviour
                     tileQueue.Enqueue(neighbors[i]);
                 }
         }
+    }
+
+    [System.Serializable]
+    public class SaveFormat
+    {
+        public short mapWidth;
+        public short mapHeight;
+        public List<SerializableTile> tiles; 
+    }
+
+    [System.Serializable]
+    public class SerializableTile
+    {
+        public byte tileID; //currently meaningless
+        public byte unitID; //arbitrary - using 0 = none, 1 = demoenemy, 2 = melee enemy, 3 = ranged enemy
+        public bool impassible;
+    }
+
+    public void Serialize(FileStream fs)
+    {
+        BinaryFormatter bf = new BinaryFormatter();
+        SaveFormat save = new SaveFormat();
+        save.mapWidth = (short)mapWidth;
+        save.mapHeight = (short)mapHeight;
+        save.tiles = new List<SerializableTile>();
+        for (int i = 0; i < mapWidth; i++)
+        {
+            for (int j = 0; j < mapHeight; j++)
+            {
+                SerializableTile tile = new SerializableTile();
+                tile.tileID = 0;
+                tile.unitID = 0;
+                if(map[i,j].unit)
+                {
+                    if (map[i, j].unit is DemoEnemy) tile.unitID = 1;
+                    else if (map[i, j].unit is SimpleMeleeEnemy) tile.unitID = 2;
+                    else if (map[i, j].unit is SimpleRangedEnemy) tile.unitID = 3;
+                }
+                tile.impassible = map[i, j].impassible;
+                save.tiles.Add(tile); //index equals j + i*mapHeight
+            }
+        }
+        bf.Serialize(fs, save);
+    }
+
+    public void Deserialize(FileStream fs)
+    {
+        BinaryFormatter bf = new BinaryFormatter();
+        SaveFormat save = (SaveFormat)bf.Deserialize(fs);
+        if (save == null) return;
+        CleanMap();
+        mapWidth = save.mapWidth;
+        mapHeight = save.mapHeight;
+        map = new Tile[mapWidth, mapHeight];
+        Vector3 offset = new Vector3(-mapWidth / 2, 0, -mapHeight / 2);
+        for (int i = 0; i < mapWidth; i++)
+            for (int j = 0; j < mapHeight; j++)
+            {
+                SerializableTile sTile = save.tiles[i * mapHeight + j];
+                map[i, j] = Instantiate(tilePrefab, new Vector3(i, 0, j) + offset, Quaternion.identity, transform).GetComponent<Tile>();
+                map[i, j].mapPos.x = i;
+                map[i, j].mapPos.y = j;
+                if (sTile.impassible)
+                    map[i, j].MakeBlock();
+                if(sTile.unitID > 0)
+                {
+                    SpawnUnit(map[i, j], enemyPrefab);
+                }
+            }
     }
 }
