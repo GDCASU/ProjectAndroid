@@ -10,15 +10,19 @@ public class Overlord : MonoBehaviour
 
     public GameObject[] controlButtons;
     public GameObject[] controls;
+    public string[] levels;
+    public bool randomizeLevels;
+    public int currentLevel;
     public GameObject attackPanel;
     public bool leftHanded = false;
     public string titleScreenScene;
     public string testRoomScene;
     public string inGameScene;
 
-    public int currentTask;
     public int selectedControl;
     public int controlProgress;
+
+    public TileMap activeTileMap;
 
     int[] controlOrder;
     static bool started = false;
@@ -38,6 +42,8 @@ public class Overlord : MonoBehaviour
             controlOrder[j] = i;
         }
         controlProgress = 0;
+
+        AssignActiveMap();
     }
 
     public void SetupControlButtons()
@@ -94,26 +100,62 @@ public class Overlord : MonoBehaviour
 
     public void SceneChanged(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name == "Prototype2Title")
+        if (scene.name == titleScreenScene)
         {
             SetupControlButtons();
         }
         else
         {
+            AssignActiveMap();
             Transform main = GameObject.Find("Canvas").transform.Find(leftHanded ? "RightControl" : "LeftControl").Find("Scaler");
             Transform atk = GameObject.Find("Canvas").transform.Find(leftHanded ? "LeftControl" : "RightControl").Find("Scaler");
-            GameObject addedControl = Instantiate(controls[selectedControl], main);
+            Instantiate(controls[selectedControl], main);
             Instantiate(attackPanel, atk);
 
             if (scene.name == inGameScene)
             {
-                GameObject.Find("TileMap").GetComponent<TileMap>().ChangeTestCase(1);
-                GameObject.Find("TileMap").GetComponent<TileMap>().turnBased = turnBased;
+                activeTileMap.turnBased = turnBased;
+                activeTileMap.LoadMapFromFile(levels[0]);
             }
             else
             {
                 GameObject.Find("BackButton").GetComponent<Button>().onClick.AddListener(() => SceneManager.LoadScene(titleScreenScene));
             }
+
+            AdjustFixedCamera();
         }
+    }
+
+    public void AdjustFixedCamera()
+    {
+        if (!activeTileMap) return;
+        Camera.main.transform.Translate(-Camera.main.transform.forward * 1000f);
+        Vector3 size = new Vector3(activeTileMap.mapWidth / 2f, 0, activeTileMap.mapHeight / 2f);
+        Vector3 tr = Camera.main.WorldToViewportPoint(size);
+        Vector3 tl = Camera.main.WorldToViewportPoint(new Vector3(-size.x, 0, size.z));
+        Vector3 br = Camera.main.WorldToViewportPoint(new Vector3(size.x, 0, -size.z));
+        Vector3 bl = Camera.main.WorldToViewportPoint(new Vector3(-size.x, 0, -size.z));
+        float scale = (tr.z+br.z)/2;
+        Debug.Log(tr);
+        Debug.Log(tl);
+        Debug.Log(br);
+        Debug.Log(bl);
+
+
+        Vector3 newPos = Camera.main.transform.position;
+
+        if (br.x - bl.x != 0.6f)
+            newPos += Camera.main.transform.forward * (scale * (0.6f - (br.x - bl.x)));
+        if (bl.y < 0)
+            newPos -= Camera.main.transform.up * (scale * (0.15f - bl.y));
+
+        Camera.main.transform.position = newPos;
+    }
+
+    private void AssignActiveMap()
+    {
+        GameObject tm = GameObject.FindWithTag("TileMap");
+        if (tm)
+            activeTileMap = tm.GetComponent<TileMap>();
     }
 }

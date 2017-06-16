@@ -4,12 +4,15 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EditorInputHandler : MonoBehaviour {
+public class EditorInputHandler : MonoBehaviour
+{
 
     public GameObject[] tilePrefabs;
     public GameObject[] unitPrefabs;
     public InputField widthField;
     public InputField heightField;
+    public InputField saveNameField;
+    public InputField loadNameField;
     public Dropdown tileDropdown;
     public Dropdown unitDropdown;
     public TileMap tileMap;
@@ -50,8 +53,10 @@ public class EditorInputHandler : MonoBehaviour {
                     Vector3 worldPos = tile.transform.position;
                     Vector2 pos = tile.mapPos;
                     Destroy(tile.gameObject);
-                    tileMap.map[(int)pos.x, (int)pos.y] = Instantiate(tilePrefabs[selectedTile],worldPos, Quaternion.identity, tileMap.transform).GetComponent<Tile>();
-                } else if (Input.GetMouseButtonDown(1))
+                    tileMap.map[(int)pos.x, (int)pos.y] = Instantiate(tilePrefabs[selectedTile], worldPos, Quaternion.identity, tileMap.transform).GetComponent<Tile>();
+                    tileMap.map[(int)pos.x, (int)pos.y].mapPos = pos;
+                }
+                else if (Input.GetMouseButtonDown(1))
                 {
                     if (tile.unit) Destroy(tile.unit.gameObject);
                     tileMap.SpawnUnit(tile, unitPrefabs[selectedUnit]);
@@ -74,27 +79,40 @@ public class EditorInputHandler : MonoBehaviour {
     {
         tileMap.mapWidth = int.Parse(widthField.text);
         tileMap.mapHeight = int.Parse(heightField.text);
-        Vector3 offset = new Vector3(-tileMap.mapWidth / 2, 0, -tileMap.mapHeight / 2);
+        Vector3 offset = new Vector3(-tileMap.mapWidth / 2f + 0.5f, 0, -tileMap.mapHeight / 2f + 0.5f);
         Tile[,] oldMap = tileMap.map;
         tileMap.map = new Tile[tileMap.mapWidth, tileMap.mapHeight];
-        int dx = (int)(tileMap.mapWidth / 2f - oldMap.GetLength(0) / 2f);
-        int dy = (int)(tileMap.mapHeight / 2f - oldMap.GetLength(1) / 2f);
-        for (int i=0; i<oldMap.GetLength(0); i++)
-            for(int j=0; j<oldMap.GetLength(1); j++)
+
+        int dx = (tileMap.mapWidth - oldMap.GetLength(0)) / 2;
+        int dy = (tileMap.mapHeight - oldMap.GetLength(1)) / 2;
+
+        for (int i = 0; i < oldMap.GetLength(0); i++)
+            for (int j = 0; j < oldMap.GetLength(1); j++)
             {
-                if (i >= tileMap.mapWidth || j >= tileMap.mapHeight)
-                    Destroy(oldMap[i, j]);
+                if (CheckValidIndex(tileMap.map, i + dx, j + dy))
+                {
+                    tileMap.map[i + dx, j + dy] = oldMap[i, j];
+                    tileMap.map[i + dx, j + dy].transform.position = new Vector3(i+dx, 0, j+dy) + offset;
+                    tileMap.map[i + dx, j + dy].mapPos = new Vector2(i + dx, j + dy);
+                }
                 else
-                    tileMap.map[i, j] = oldMap[i, j];
+                    Destroy(oldMap[i, j].gameObject);
             }
+
         for (int i = 0; i < tileMap.mapWidth; i++)
             for (int j = 0; j < tileMap.mapHeight; j++)
             {
-                if((i >= oldMap.GetLength(0) || j >= oldMap.GetLength(1)) || oldMap[i,j] == null)
+                if (!tileMap.map[i, j])
+                {
                     tileMap.map[i, j] = Instantiate(tilePrefabs[0], new Vector3(i, 0, j) + offset, Quaternion.identity, tileMap.transform).GetComponent<Tile>();
-                else
-                    tileMap.map[i, j] = oldMap[i, j];
+                    tileMap.map[i, j].mapPos = new Vector2(i, j);
+                }
             }
+    }
+
+    private bool CheckValidIndex(Tile[,] map, int x, int y)
+    {
+        return (x >= 0 && x < map.GetLength(0) && y >= 0 && y < map.GetLength(1));
     }
 
     public void ResetMap()
@@ -102,17 +120,15 @@ public class EditorInputHandler : MonoBehaviour {
         tileMap.SetupMap();
     }
 
-	public void Save()
+    public void Save()
     {
-        FileStream file = File.OpenWrite(Application.dataPath + "/Maps/heck.txt");
-        tileMap.Serialize(file);
-        file.Close();
+        tileMap.SaveMapToFile(saveNameField.text);
     }
 
     public void Load()
     {
-        FileStream file = File.OpenRead(Application.dataPath + "/Maps/heck.txt");
-        tileMap.Deserialize(file);
-        file.Close();
+        tileMap.LoadMapFromFile(loadNameField.text);
+        widthField.text = tileMap.mapWidth.ToString();
+        heightField.text = tileMap.mapHeight.ToString();
     }
 }
