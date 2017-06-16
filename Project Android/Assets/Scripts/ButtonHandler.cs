@@ -4,6 +4,11 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityStandardAssets.CrossPlatformInput;
 
+// Developer:   Kyle Aycock
+// Date:        6/16/2017
+// Description: Handles DPad button inputs. Taken originally from Unity Standard Assets
+//              and modified to make improvements.
+
 public class ButtonHandler : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler
 {
 

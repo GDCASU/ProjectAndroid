@@ -4,6 +4,14 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityStandardAssets.CrossPlatformInput;
 
+// Developer:   Kyle Aycock
+// Date:        6/16/2017
+// Description: Class taken and modified from Unity Standard Assets.
+//              Changes include hiding joystick when not in use, setting
+//              joystick position on finger down, constraining movement
+//              to a circle instead of a diamond, and passing along input
+//              to related classes.
+
 public class Joystick : MonoBehaviour
 {
     public enum AxisOption

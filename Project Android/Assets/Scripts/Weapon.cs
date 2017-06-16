@@ -2,6 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Developer:   Kyle Aycock
+// Date:        6/16/2017
+// Description: Represents a weapon that can perform attacks. A simple
+//              weapon can be created using the constructor, but more complex
+//              weapons should be specified in another class that derives from this one.
+
 public class Weapon : Item {
 
     public int damage;

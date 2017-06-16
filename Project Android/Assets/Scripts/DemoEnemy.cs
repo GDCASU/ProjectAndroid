@@ -96,27 +96,6 @@ public class DemoEnemy : Unit
 
         base.Move();
     }
-
-    public void SetActive()
-    {
-        target = true;
-        color = Color.red;
-    }
-
-    public void SetInactive()
-    {
-        target = false;
-        color = Color.blue;
-    }
-
-    public override void Damaged(int damage, int sourceID)
-    {
-        if (target)
-        {
-            base.Damaged(damage, sourceID);
-            SetInactive();
-        }
-    }
 }
 
 public enum MovementPattern
