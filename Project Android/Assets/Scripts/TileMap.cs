@@ -5,6 +5,12 @@ using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.UI;
 
+// Developer:   Kyle Aycock
+// Date:        6/16/2017
+// Description: This is the class responsible for managing the collection of tiles that make up the
+//              current map. It handles saving and loading map layouts and unit movement and spawning and
+//              contains helpful methods for finding tiles and their neighbors.
+
 public class TileMap : MonoBehaviour
 {
 
@@ -12,29 +18,28 @@ public class TileMap : MonoBehaviour
     public int mapWidth;
     public int mapHeight;
     [Header("Prototype Settings")]
-    public int numTasks;
-    public Text progressText;
-    public Text instructionText;
-    public TaskTimer timer;
     public bool turnBased;
     [Header("Prefabs")]
+    public SerializeDirectory directory;
     public GameObject tilePrefab;
     public GameObject playerPrefab;
     public GameObject enemyPrefab;
+    public Player activePlayer;
 
     public Tile[,] map;
 
-    private int protoTaskIndex;
-    private int protoTargetMax = 0;
-    private int protoTargetCounter = 0;
     private DemoEnemy[] enemies;
-    private Player activePlayer;
-    private Tile[] targetTiles;
 
     private void Start()
     {
         if(map == null)
             SetupMap();
+
+        //verify directory
+        for (int i = 0; i < directory.tileList.Length; i++)
+            directory.tileList[i].GetComponent<Tile>().tileId = i;
+        for (int i = 0; i < directory.unitList.Length; i++)
+            directory.unitList[i].GetComponent<Unit>().unitId = i;
     }
 
     void Update()
@@ -64,6 +69,8 @@ public class TileMap : MonoBehaviour
 
     public void CleanMap()
     {
+        if(activePlayer)
+            activePlayer.transform.SetParent(null,true);
         if (map != null)
             for (int i = 0; i < mapWidth; i++)
                 for (int j = 0; j < mapHeight; j++)
@@ -71,18 +78,15 @@ public class TileMap : MonoBehaviour
                         Destroy(map[i, j].gameObject);
     }
 
-    public void ChangeTestCase(int newCase)
-    {
-        protoTaskIndex = newCase;
-        SetupMap();
-    }
-
     public bool MoveUnit(Tile oldTile, Tile newTile, Unit unit) //change unit type to Unit when possible
     {
         if (newTile.unit || newTile.impassible) return false;
 
-        oldTile.OnExit();
-        oldTile.unit = null;
+        if (oldTile)
+        {
+            oldTile.OnExit();
+            oldTile.unit = null;
+        }
         newTile.unit = unit;
         newTile.OnEnter();
         //order is important for the tileAPI calls so that the unit is
@@ -94,8 +98,20 @@ public class TileMap : MonoBehaviour
         if (unit is Player)
         {
             EnemyMoveStep();
+            if (newTile.tag == "Exit")
+                GameObject.FindWithTag("Overlord").GetComponent<Overlord>().NextLevel();
         }
         return true;
+    }
+
+    public void SpawnPlayer(Tile tile)
+    {
+        Player player = null;
+        if (activePlayer)
+            player = activePlayer;
+        else
+            player = (Player)SpawnUnit(tile,playerPrefab);
+        MoveUnit(player.occupiedTile, tile, player);
     }
 
     public void EnemyMoveStep()
@@ -110,7 +126,6 @@ public class TileMap : MonoBehaviour
     public void DamageTile(Tile tile, int damage, int sourceID)
     {
         if (tile == null || tile.unit == null || tile.unit.getID() == sourceID) return;
-
         tile.unit.Damaged(damage, sourceID);
 
         if (!(tile.unit is Player)) EnemyMoveStep(); //only move if player hit enemy - must change in future
@@ -223,9 +238,8 @@ public class TileMap : MonoBehaviour
     [System.Serializable]
     public class SerializableTile
     {
-        public byte tileID; //currently meaningless
-        public byte unitID; //arbitrary - using 0 = none, 1 = demoenemy, 2 = melee enemy, 3 = ranged enemy
-        public bool impassible;
+        public sbyte tileID;
+        public sbyte unitID;
     }
 
     public void Serialize(FileStream fs)
@@ -240,15 +254,12 @@ public class TileMap : MonoBehaviour
             for (int j = 0; j < mapHeight; j++)
             {
                 SerializableTile tile = new SerializableTile();
-                tile.tileID = 0;
-                tile.unitID = 0;
+                tile.tileID = (sbyte)map[i,j].tileId;
+                tile.unitID = -1;
                 if(map[i,j].unit)
                 {
-                    if (map[i, j].unit is DemoEnemy) tile.unitID = 1;
-                    else if (map[i, j].unit is SimpleMeleeEnemy) tile.unitID = 2;
-                    else if (map[i, j].unit is SimpleRangedEnemy) tile.unitID = 3;
+                    tile.unitID = (sbyte)map[i, j].unit.unitId;
                 }
-                tile.impassible = map[i, j].impassible;
                 save.tiles.Add(tile); //index equals j + i*mapHeight
             }
         }
@@ -269,14 +280,12 @@ public class TileMap : MonoBehaviour
             for (int j = 0; j < mapHeight; j++)
             {
                 SerializableTile sTile = save.tiles[i * mapHeight + j];
-                map[i, j] = Instantiate(tilePrefab, new Vector3(i, 0, j) + offset, Quaternion.identity, transform).GetComponent<Tile>();
+                map[i, j] = Instantiate(directory.tileList[sTile.tileID], new Vector3(i, 0, j) + offset, Quaternion.identity, transform).GetComponent<Tile>();
                 map[i, j].mapPos.x = i;
                 map[i, j].mapPos.y = j;
-                if (sTile.impassible)
-                    map[i, j].MakeBlock();
-                if(sTile.unitID > 0)
+                if(sTile.unitID >= 0)
                 {
-                    SpawnUnit(map[i, j], enemyPrefab);
+                    SpawnUnit(map[i, j], directory.unitList[sTile.unitID]);
                 }
             }
     }

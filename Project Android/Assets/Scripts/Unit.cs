@@ -28,6 +28,8 @@ public class Unit : MonoBehaviour
     public int maxHealth;
     protected int currentHealth;
 
+    public int unitId;
+    
     protected float moveTimer;
     
 

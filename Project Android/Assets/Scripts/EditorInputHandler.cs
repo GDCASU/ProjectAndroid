@@ -4,11 +4,15 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
+// Developer:   Kyle Aycock
+// Date:        6/16/2017
+// Description: Script attached to the Canvas in the Map Editor that handles all input from
+//              buttons, fields, etc. in the canvas. Entirely responsible for all map editor
+//              functionality.
+
 public class EditorInputHandler : MonoBehaviour
 {
-
-    public GameObject[] tilePrefabs;
-    public GameObject[] unitPrefabs;
+    public SerializeDirectory directory;
     public InputField widthField;
     public InputField heightField;
     public InputField saveNameField;
@@ -24,13 +28,13 @@ public class EditorInputHandler : MonoBehaviour
     {
         //populate dropdowns
         List<Dropdown.OptionData> opts = new List<Dropdown.OptionData>();
-        for (int i = 0; i < tilePrefabs.Length; i++)
-            opts.Add(new Dropdown.OptionData(tilePrefabs[i].name));
+        for (int i = 0; i < directory.tileList.Length; i++)
+            opts.Add(new Dropdown.OptionData(directory.tileList[i].name));
         tileDropdown.ClearOptions();
         tileDropdown.AddOptions(opts);
         opts = new List<Dropdown.OptionData>();
-        for (int i = 0; i < unitPrefabs.Length; i++)
-            opts.Add(new Dropdown.OptionData(unitPrefabs[i].name));
+        for (int i = 0; i < directory.unitList.Length; i++)
+            opts.Add(new Dropdown.OptionData(directory.unitList[i].name));
         unitDropdown.ClearOptions();
         unitDropdown.AddOptions(opts);
         selectedTile = 0;
@@ -43,6 +47,14 @@ public class EditorInputHandler : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
         {
+            foreach (RectTransform rt in GetComponentsInChildren<RectTransform>())
+            {
+                if (!rt.gameObject.name.Equals("Canvas") && RectTransformUtility.RectangleContainsScreenPoint(rt, Input.mousePosition))
+                {
+                    return;
+                }
+            }
+
             RaycastHit hit;
             if (!Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit)) return;
             Tile tile = hit.collider.GetComponent<Tile>();
@@ -53,13 +65,18 @@ public class EditorInputHandler : MonoBehaviour
                     Vector3 worldPos = tile.transform.position;
                     Vector2 pos = tile.mapPos;
                     Destroy(tile.gameObject);
-                    tileMap.map[(int)pos.x, (int)pos.y] = Instantiate(tilePrefabs[selectedTile], worldPos, Quaternion.identity, tileMap.transform).GetComponent<Tile>();
-                    tileMap.map[(int)pos.x, (int)pos.y].mapPos = pos;
+                    Tile newTile = Instantiate(directory.tileList[selectedTile], worldPos, Quaternion.identity, tileMap.transform).GetComponent<Tile>();
+                    tileMap.map[(int)pos.x, (int)pos.y] = newTile;
+                    newTile.mapPos = pos;
+                    if (newTile.tag == "Entrance")
+                        newTile.SetColor(Color.green);
+                    else if (newTile.tag == "Exit")
+                        newTile.SetColor(Color.red);
                 }
                 else if (Input.GetMouseButtonDown(1))
                 {
                     if (tile.unit) Destroy(tile.unit.gameObject);
-                    tileMap.SpawnUnit(tile, unitPrefabs[selectedUnit]);
+                    tileMap.SpawnUnit(tile, directory.unitList[selectedUnit]);
                 }
             }
         }
@@ -104,7 +121,7 @@ public class EditorInputHandler : MonoBehaviour
             {
                 if (!tileMap.map[i, j])
                 {
-                    tileMap.map[i, j] = Instantiate(tilePrefabs[0], new Vector3(i, 0, j) + offset, Quaternion.identity, tileMap.transform).GetComponent<Tile>();
+                    tileMap.map[i, j] = Instantiate(directory.tileList[0], new Vector3(i, 0, j) + offset, Quaternion.identity, tileMap.transform).GetComponent<Tile>();
                     tileMap.map[i, j].mapPos = new Vector2(i, j);
                 }
             }
@@ -130,5 +147,9 @@ public class EditorInputHandler : MonoBehaviour
         tileMap.LoadMapFromFile(loadNameField.text);
         widthField.text = tileMap.mapWidth.ToString();
         heightField.text = tileMap.mapHeight.ToString();
+        foreach (GameObject go in GameObject.FindGameObjectsWithTag("Entrance"))
+            go.GetComponent<Tile>().SetColor(Color.green);
+        foreach (GameObject go in GameObject.FindGameObjectsWithTag("Exit"))
+            go.GetComponent<Tile>().SetColor(Color.red);
     }
 }

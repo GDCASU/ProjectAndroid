@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+// Developer:   Kyle Aycock
+// Date:        6/16/2017
+// Description: Simple camera movement script to make navigation in the Map Editor nicer
+
 public class EditorCameraMovement : MonoBehaviour {
 
     public float speed;

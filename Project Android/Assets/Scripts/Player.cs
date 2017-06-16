@@ -103,6 +103,5 @@ public class Player : Unit
     public override void KillUnit()
     {
         base.KillUnit();
-        tileMap.instructionText.text = "You Lose";
     }
 }

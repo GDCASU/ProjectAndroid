@@ -5,13 +5,18 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+// Developer:   Kyle Aycock
+// Date:        6/16/2017
+// Description: This script currently manages the player's progression through different rooms.
+//              It also contains methods responsible for adding in the controls selected by the player
+//              and some extraneous methods having to do with the camera.
+
 public class Overlord : MonoBehaviour
 {
 
     public GameObject[] controlButtons;
     public GameObject[] controls;
     public string[] levels;
-    public bool randomizeLevels;
     public int currentLevel;
     public GameObject attackPanel;
     public bool leftHanded = false;
@@ -80,7 +85,7 @@ public class Overlord : MonoBehaviour
         leftHanded = left;
     }
 
-    public void StartTasks(bool tb)
+    public void StartGame(bool tb)
     {
         turnBased = tb;
         SceneManager.LoadScene(inGameScene);
@@ -115,7 +120,8 @@ public class Overlord : MonoBehaviour
             if (scene.name == inGameScene)
             {
                 activeTileMap.turnBased = turnBased;
-                activeTileMap.LoadMapFromFile(levels[0]);
+                activeTileMap.LoadMapFromFile(levels[currentLevel]);
+                activeTileMap.SpawnPlayer(GameObject.FindWithTag("Entrance").GetComponent<Tile>());
             }
             else
             {
@@ -126,31 +132,40 @@ public class Overlord : MonoBehaviour
         }
     }
 
+    public void NextLevel()
+    {
+        currentLevel++;
+        activeTileMap.LoadMapFromFile(levels[currentLevel]);
+        activeTileMap.SpawnPlayer(GameObject.FindWithTag("Entrance").GetComponent<Tile>());
+    }
+
     public void AdjustFixedCamera()
     {
         if (!activeTileMap) return;
-        Camera.main.transform.Translate(-Camera.main.transform.forward * 1000f);
         Vector3 size = new Vector3(activeTileMap.mapWidth / 2f, 0, activeTileMap.mapHeight / 2f);
         Vector3 tr = Camera.main.WorldToViewportPoint(size);
         Vector3 tl = Camera.main.WorldToViewportPoint(new Vector3(-size.x, 0, size.z));
         Vector3 br = Camera.main.WorldToViewportPoint(new Vector3(size.x, 0, -size.z));
         Vector3 bl = Camera.main.WorldToViewportPoint(new Vector3(-size.x, 0, -size.z));
-        float scale = (tr.z+br.z)/2;
-        Debug.Log(tr);
-        Debug.Log(tl);
-        Debug.Log(br);
-        Debug.Log(bl);
 
+        float scale = ((size * 2).magnitude / 3f / (Camera.main.aspect)) / Mathf.Tan(Mathf.Deg2Rad * Camera.main.fieldOfView / 2.0f); //needs tweaking
+        
+        //Debug.Log(tr);
+        //Debug.Log(tl);
+        //Debug.Log(br);
+        //Debug.Log(bl);
 
         Vector3 newPos = Camera.main.transform.position;
 
         if (br.x - bl.x != 0.6f)
             newPos += Camera.main.transform.forward * (scale * (0.6f - (br.x - bl.x)));
-        if (bl.y < 0)
-            newPos -= Camera.main.transform.up * (scale * (0.15f - bl.y));
+        if (bl.y != 0.05f)
+            newPos -= Camera.main.transform.up * (scale * (0.05f - bl.y));
 
         Camera.main.transform.position = newPos;
     }
+
+
 
     private void AssignActiveMap()
     {
