@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Developer:   Kyle Aycock
+// Date:        6/16/2017
+// Description: Passes title screen input to the current overlord. 
+
 public class TitleInputHandler : MonoBehaviour {
 
     Overlord overlord;
@@ -18,7 +22,7 @@ public class TitleInputHandler : MonoBehaviour {
 
     public void StartTasks(bool turnbased)
     {
-        overlord.StartTasks(turnbased);
+        overlord.StartGame(turnbased);
     }
 
     public void EnterTestRoom()

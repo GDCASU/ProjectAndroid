@@ -1,7 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.UI;
+
+// Developer:   Kyle Aycock
+// Date:        6/16/2017
+// Description: This is the class responsible for managing the collection of tiles that make up the
+//              current map. It handles saving and loading map layouts and unit movement and spawning and
+//              contains helpful methods for finding tiles and their neighbors.
 
 public class TileMap : MonoBehaviour
 {
@@ -10,28 +18,28 @@ public class TileMap : MonoBehaviour
     public int mapWidth;
     public int mapHeight;
     [Header("Prototype Settings")]
-    public int numTasks;
-    public Text progressText;
-    public Text instructionText;
-    public TaskTimer timer;
     public bool turnBased;
     [Header("Prefabs")]
+    public SerializeDirectory directory;
     public GameObject tilePrefab;
     public GameObject playerPrefab;
     public GameObject enemyPrefab;
+    public Player activePlayer;
 
     public Tile[,] map;
 
-    private int protoTaskIndex;
-    private int protoTargetMax = 0;
-    private int protoTargetCounter = 0;
     private DemoEnemy[] enemies;
-    private Player activePlayer;
-    private Tile[] targetTiles;
 
     private void Start()
     {
-        SetupMap();
+        if(map == null)
+            SetupMap();
+
+        //verify directory
+        for (int i = 0; i < directory.tileList.Length; i++)
+            directory.tileList[i].GetComponent<Tile>().tileId = i;
+        for (int i = 0; i < directory.unitList.Length; i++)
+            directory.unitList[i].GetComponent<Unit>().unitId = i;
     }
 
     void Update()
@@ -41,15 +49,15 @@ public class TileMap : MonoBehaviour
             for (int i = 0; i < enemies.Length; i++)
                 enemies[i].MoveUpdate();
         }
-
-        activePlayer.GetComponent<Player>().MoveUpdate();
+        if(activePlayer)
+            activePlayer.GetComponent<Player>().MoveUpdate();
     }
 
     public void SetupMap()
     {
         CleanMap();
         map = new Tile[mapWidth, mapHeight];
-        Vector3 offset = new Vector3(-mapWidth / 2, 0, -mapHeight / 2);
+        Vector3 offset = new Vector3(-mapWidth / 2f + 0.5f, 0, -mapHeight / 2f + 0.5f);
         for (int i = 0; i < mapWidth; i++)
             for (int j = 0; j < mapHeight; j++)
             {
@@ -57,13 +65,12 @@ public class TileMap : MonoBehaviour
                 map[i, j].mapPos.x = i;
                 map[i, j].mapPos.y = j;
             }
-
-
-        SetupTestCase();
     }
 
     public void CleanMap()
     {
+        if(activePlayer)
+            activePlayer.transform.SetParent(null,true);
         if (map != null)
             for (int i = 0; i < mapWidth; i++)
                 for (int j = 0; j < mapHeight; j++)
@@ -71,109 +78,15 @@ public class TileMap : MonoBehaviour
                         Destroy(map[i, j].gameObject);
     }
 
-    public void SetupTestCase()
-    {
-        int[] xPos;
-        int[] yPos;
-        switch (protoTaskIndex)
-        {
-            case 1:
-                //player
-                activePlayer = (Player)SpawnUnit(map[3, 3], playerPrefab);
-                //target tiles
-                xPos = new int[] { 1, 4, 1, 5 };
-                yPos = new int[] { 1, 0, 3, 5 };
-                targetTiles = new Tile[xPos.Length];
-                for (int i = 0; i < xPos.Length; i++)
-                    targetTiles[i] = map[xPos[i], yPos[i]];
-                targetTiles[0].protoTarget = true;
-                targetTiles[0].SetColor(Color.yellow);
-                //other related setup
-                protoTargetCounter = xPos.Length;
-                if (instructionText) instructionText.text = "Step on the yellow tiles";
-                break;
-            case 2:
-                //player
-                activePlayer = (Player)SpawnUnit(map[2, 3], playerPrefab);
-                //blocks
-                xPos = new int[] { 0, 5, 0, 2, 3, 4, 1, 1, 2, 4, 4 };
-                yPos = new int[] { 0, 0, 1, 1, 1, 2, 3, 4, 4, 4, 5 };
-                for (int i = 0; i < xPos.Length; i++)
-                    map[xPos[i], yPos[i]].MakeBlock();
-                //target tiles
-                xPos = new int[] { 0, 3, 4, 5 };
-                yPos = new int[] { 5, 2, 0, 5 };
-                targetTiles = new Tile[xPos.Length];
-                for (int i = 0; i < xPos.Length; i++)
-                    targetTiles[i] = map[xPos[i], yPos[i]];
-                targetTiles[0].protoTarget = true;
-                targetTiles[0].SetColor(Color.yellow);
-                //other stuff
-                protoTargetCounter = xPos.Length;
-                if (instructionText) instructionText.text = "Step on the yellow tiles";
-                break;
-            case 3:
-                //player
-                activePlayer = (Player)SpawnUnit(map[2, 2], playerPrefab);
-                //enemies
-                xPos = new int[] { 1, 4, 0, 5, 3 };
-                yPos = new int[] { 0, 2, 4, 0, 5 };
-                MovementPattern[] moveBehaviors = { MovementPattern.Horizontal, MovementPattern.Ordinal, MovementPattern.Ordinal, MovementPattern.Vertical, MovementPattern.Horizontal };
-                enemies = new DemoEnemy[xPos.Length];
-                for (int i = 0; i < xPos.Length; i++)
-                {
-                    enemies[i] = (DemoEnemy)SpawnUnit(map[xPos[i], yPos[i]], enemyPrefab);
-                    enemies[i].moveType = moveBehaviors[i];
-                }
-                enemies[0].SetActive();
-                //other stuff
-                protoTargetCounter = xPos.Length;
-                if (instructionText) instructionText.text = "Attack the red enemies";
-                break;
-            case 4:
-                //player
-                activePlayer = (Player)SpawnUnit(map[3, 2], playerPrefab);
-                //blocks
-                xPos = new int[] { 2, 3, 0, 3, 0, 1, 5, 2, 4, 0, 0, 3, 4 };
-                yPos = new int[] { 0, 0, 1, 1, 2, 2, 2, 3, 3, 4, 5, 5, 5 };
-                for (int i = 0; i < xPos.Length; i++)
-                    map[xPos[i], yPos[i]].MakeBlock();
-                //enemies
-                xPos = new int[] { 0, 5, 5, 0, 1 };
-                yPos = new int[] { 3, 1, 4, 0, 5 };
-                MovementPattern[] moveBehaviors2 = { MovementPattern.Horizontal, MovementPattern.Ordinal, MovementPattern.Vertical, MovementPattern.Horizontal, MovementPattern.Horizontal };
-                enemies = new DemoEnemy[xPos.Length];
-                for (int i = 0; i < xPos.Length; i++)
-                {
-                    enemies[i] = (DemoEnemy)SpawnUnit(map[xPos[i], yPos[i]], enemyPrefab);
-                    enemies[i].moveType = moveBehaviors2[i];
-                }
-                enemies[0].SetActive();
-                //other stuff
-                protoTargetCounter = xPos.Length;
-                if (instructionText) instructionText.text = "Attack the red enemies";
-                break;
-            default:
-                break;
-        }
-        protoTargetMax = protoTargetCounter;
-        if (progressText)
-            progressText.text = "Progress: 0/" + protoTargetMax;
-        if (timer) timer.resetTimer();
-    }
-
-    public void ChangeTestCase(int newCase)
-    {
-        protoTaskIndex = newCase;
-        SetupMap();
-    }
-
     public bool MoveUnit(Tile oldTile, Tile newTile, Unit unit) //change unit type to Unit when possible
     {
         if (newTile.unit || newTile.impassible) return false;
 
-        oldTile.OnExit();
-        oldTile.unit = null;
+        if (oldTile)
+        {
+            oldTile.OnExit();
+            oldTile.unit = null;
+        }
         newTile.unit = unit;
         newTile.OnEnter();
         //order is important for the tileAPI calls so that the unit is
@@ -184,24 +97,21 @@ public class TileMap : MonoBehaviour
 
         if (unit is Player)
         {
-            if (newTile.protoTarget)
-            {
-                newTile.protoTarget = false;
-                newTile.SetColor(Color.white);
-                protoTargetCounter--;
-                if (protoTargetCounter > 0)
-                {
-                    Tile target = targetTiles[protoTargetMax - protoTargetCounter];
-                    target.protoTarget = true;
-                    target.SetColor(Color.yellow);
-                }
-                if (progressText)
-                    progressText.text = "Progress: " + (protoTargetMax - protoTargetCounter) + "/" + protoTargetMax;
-                if (protoTargetCounter == 0) CompleteTask();
-            }
             EnemyMoveStep();
+            if (newTile.tag == "Exit")
+                GameObject.FindWithTag("Overlord").GetComponent<Overlord>().NextLevel();
         }
         return true;
+    }
+
+    public void SpawnPlayer(Tile tile)
+    {
+        Player player = null;
+        if (activePlayer)
+            player = activePlayer;
+        else
+            player = (Player)SpawnUnit(tile,playerPrefab);
+        MoveUnit(player.occupiedTile, tile, player);
     }
 
     public void EnemyMoveStep()
@@ -216,17 +126,6 @@ public class TileMap : MonoBehaviour
     public void DamageTile(Tile tile, int damage, int sourceID)
     {
         if (tile == null || tile.unit == null || tile.unit.getID() == sourceID) return;
-
-        if (tile.unit is DemoEnemy && ((DemoEnemy)tile.unit).target)
-        {
-            protoTargetCounter--;
-            if (protoTargetCounter > 0)
-                enemies[protoTargetMax - protoTargetCounter].SetActive();
-            if (progressText)
-                progressText.text = "Progress: " + (protoTargetMax - protoTargetCounter) + "/" + protoTargetMax;
-            if (protoTargetCounter == 0) CompleteTask();
-        }
-
         tile.unit.Damaged(damage, sourceID);
 
         if (!(tile.unit is Player)) EnemyMoveStep(); //only move if player hit enemy - must change in future
@@ -237,28 +136,6 @@ public class TileMap : MonoBehaviour
         if (tile == null || tile.unit == null) return;
 
         tile.unit.Healed(health);
-    }
-
-    public void CompleteTask()
-    {
-        timer.pause();
-        if (protoTaskIndex >= numTasks)
-            instructionText.text = "All tasks completed. Returning to main screen...";
-        else
-            instructionText.text = "Task complete. Moving to next...";
-        StartCoroutine(NextTask());
-    }
-
-    IEnumerator NextTask()
-    {
-        yield return new WaitForSeconds(3);
-        timer.unpause();
-        if (protoTaskIndex >= numTasks) GameObject.FindWithTag("Overlord").GetComponent<Overlord>().TasksCompleted();
-        else
-        {
-            ChangeTestCase(protoTaskIndex + 1);
-            SetupMap();
-        }
     }
 
     public Unit SpawnUnit(Tile tile, GameObject unit)
@@ -332,5 +209,84 @@ public class TileMap : MonoBehaviour
                     tileQueue.Enqueue(neighbors[i]);
                 }
         }
+    }
+
+    public void LoadMapFromFile(string filename)
+    {
+        if (!Directory.Exists(Application.dataPath + "/Maps/")) Directory.CreateDirectory(Application.dataPath + "/Maps/");
+        FileStream file = File.OpenRead(Application.dataPath + "/Maps/" + filename);
+        Deserialize(file);
+        file.Close();
+    }
+
+    public void SaveMapToFile(string filename)
+    {
+        if (!Directory.Exists(Application.dataPath + "/Maps/")) Directory.CreateDirectory(Application.dataPath + "/Maps/");
+        FileStream file = File.OpenWrite(Application.dataPath + "/Maps/" + filename);
+        Serialize(file);
+        file.Close();
+    }
+
+    [System.Serializable]
+    public class SaveFormat
+    {
+        public short mapWidth;
+        public short mapHeight;
+        public List<SerializableTile> tiles; 
+    }
+
+    [System.Serializable]
+    public class SerializableTile
+    {
+        public sbyte tileID;
+        public sbyte unitID;
+    }
+
+    public void Serialize(FileStream fs)
+    {
+        BinaryFormatter bf = new BinaryFormatter();
+        SaveFormat save = new SaveFormat();
+        save.mapWidth = (short)mapWidth;
+        save.mapHeight = (short)mapHeight;
+        save.tiles = new List<SerializableTile>();
+        for (int i = 0; i < mapWidth; i++)
+        {
+            for (int j = 0; j < mapHeight; j++)
+            {
+                SerializableTile tile = new SerializableTile();
+                tile.tileID = (sbyte)map[i,j].tileId;
+                tile.unitID = -1;
+                if(map[i,j].unit)
+                {
+                    tile.unitID = (sbyte)map[i, j].unit.unitId;
+                }
+                save.tiles.Add(tile); //index equals j + i*mapHeight
+            }
+        }
+        bf.Serialize(fs, save);
+    }
+
+    public void Deserialize(FileStream fs)
+    {
+        BinaryFormatter bf = new BinaryFormatter();
+        SaveFormat save = (SaveFormat)bf.Deserialize(fs);
+        if (save == null) return;
+        CleanMap();
+        mapWidth = save.mapWidth;
+        mapHeight = save.mapHeight;
+        map = new Tile[mapWidth, mapHeight];
+        Vector3 offset = new Vector3(-mapWidth / 2f + 0.5f, 0, -mapHeight / 2f + 0.5f);
+        for (int i = 0; i < mapWidth; i++)
+            for (int j = 0; j < mapHeight; j++)
+            {
+                SerializableTile sTile = save.tiles[i * mapHeight + j];
+                map[i, j] = Instantiate(directory.tileList[sTile.tileID], new Vector3(i, 0, j) + offset, Quaternion.identity, transform).GetComponent<Tile>();
+                map[i, j].mapPos.x = i;
+                map[i, j].mapPos.y = j;
+                if(sTile.unitID >= 0)
+                {
+                    SpawnUnit(map[i, j], directory.unitList[sTile.unitID]);
+                }
+            }
     }
 }

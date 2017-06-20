@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+// Developer:   Kyle Aycock
+// Date:        6/16/2017
+// Description: This script just does some math to scale some UI elements to accomodate resolution changes
+
 [ExecuteInEditMode]
 public class LayoutGroupScaler : MonoBehaviour {
 

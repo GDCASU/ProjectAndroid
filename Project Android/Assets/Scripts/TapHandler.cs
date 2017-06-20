@@ -2,6 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Developer:   Kyle Aycock
+// Date:        6/16/2017
+// Description: This class handles taps when the control method is set to use it.
+//              It simply finds the tile that was tapped and passes that information to the player.
+
 public class TapHandler : MonoBehaviour {
 	
 	// Update is called once per frame
