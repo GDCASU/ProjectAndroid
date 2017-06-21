@@ -139,4 +139,68 @@ public class GalaxyOverworldUpdate : MonoBehaviour {
 	{
 		
 	}
+	
+	//public function to lock a certain section
+	public void LockThisSection(string thisSectionName)
+	{
+		if(startSection.sectionName == thisSectionName)
+		{
+			startSection.SetToLocked();
+		}
+		else
+		{
+			bool reachedSection = false;
+			
+			GalaxySectionUpdate thisSection = startSection;
+			
+			int countVariable = 0; 
+			while(!reachedSection)
+			{
+				//move to next section
+				thisSection = thisSection.nextSection;
+				//if this section's sectionName matches the name input
+				if(thisSection.sectionName == thisSectionName){reachedSection = true;}
+				//if this section is last section and sectionName does not match input
+				if(thisSection == lastSection && thisSection.sectionName != thisSectionName)
+				{
+					thisSection = null; 
+					break;
+				}
+			}
+			
+			if(thisSection != null){thisSection.SetToLocked();}
+		}
+	}
+	
+	//public function to unlock a certain section by name
+	public void UnlockThisSection(string thisSectionName)
+	{
+		if(startSection.sectionName == thisSectionName)
+		{
+			startSection.SetToUnlocked();
+		}
+		else
+		{
+			bool reachedSection = false;
+			
+			GalaxySectionUpdate thisSection = startSection;
+			
+			int countVariable = 0; 
+			while(!reachedSection)
+			{
+				//move to next section
+				thisSection = thisSection.nextSection;
+				//if this section's sectionName matches the name input
+				if(thisSection.sectionName == thisSectionName){reachedSection = true;}
+				//if this section is last section and sectionName does not match input
+				if(thisSection == lastSection && thisSection.sectionName != thisSectionName)
+				{
+					thisSection = null; 
+					break;
+				}
+			}
+			
+			if(thisSection != null){thisSection.SetToUnlocked();}
+		}
+	}
 }
