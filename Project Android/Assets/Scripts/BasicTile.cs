@@ -9,14 +9,16 @@ using UnityEngine;
     Basic tile - does nothing special.
  */
 
-public class BasicTile : TileAPI
-{
-	public override void OnEnter()
-    {
+public class BasicTile : TileAPI {
+    public override void OnEnter() {
         return;
     }
 
-    public override void OnExit()
+    public override void OnExit() {
+        return;
+    }
+
+    public override void OnWait() 
     {
         return;
     }

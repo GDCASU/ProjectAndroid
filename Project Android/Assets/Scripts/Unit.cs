@@ -27,15 +27,13 @@ public class Unit : MonoBehaviour
     public RectTransform healthBar;
     public int maxHealth;
     protected int currentHealth;
-
-    public int unitId;
     
     protected float moveTimer;
     
 
     //UnitID is the "team" of the unit. Units on the same team can't damage eachother. 
     //Enemies have an ID of 0, the player has an ID of 1.
-    protected int unitID;
+    public int unitId;
 
     void Awake()
     {
@@ -46,7 +44,11 @@ public class Unit : MonoBehaviour
 
     void Start()
     {
-
+        inventory = gameObject.GetComponent<Inventory>();
+        if (equippedWeapon != null)
+        {
+            inventory.AddToInventory(equippedWeapon);
+        }
     }
 
     void Update()
@@ -80,7 +82,7 @@ public class Unit : MonoBehaviour
 
     public virtual void Damaged(int damage, int sourceID)
     {
-        if (unitID != sourceID)
+        if (unitId != sourceID)
         {
             currentHealth = currentHealth - damage;
             if (currentHealth <= 0)
@@ -107,9 +109,9 @@ public class Unit : MonoBehaviour
         return inventory;
     }
 
-    public virtual int getID()
+    public virtual int GetId()
     {
-        return unitID;
+        return unitId;
     }
 
     public virtual void KillUnit()
