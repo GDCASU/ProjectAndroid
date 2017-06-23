@@ -17,6 +17,8 @@ using UnityEngine;
 
 public class SimpleRangedEnemy : Unit
 {
+    [Header("Default Weapons")]
+    public Weapon defaultWeaponPrefab;
 
     private Color color
     {
@@ -37,7 +39,12 @@ public class SimpleRangedEnemy : Unit
 
     void Start()
     {
-        equippedWeapon = new Weapon(1, 4, "Simple Gun");
+        if (defaultWeaponPrefab != null)
+        {
+            Weapon weapon = Instantiate(defaultWeaponPrefab);
+            inventory.AddToInventory(weapon);
+            equippedWeapon = weapon;
+        }
         currentHealth = maxHealth;
         unitId = 0;
     }

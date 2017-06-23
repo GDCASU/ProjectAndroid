@@ -98,6 +98,13 @@ public class Item : MonoBehaviour {
 
     }
 
+    //this is the text that will be displayed in the inventory screens
+    public virtual string GetInventoryText()
+    {
+        string text = itemName;
+        return text;
+    }
+
     private void OnDestroy()
     {
         if (inventory != null)

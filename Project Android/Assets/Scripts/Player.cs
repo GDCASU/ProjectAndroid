@@ -14,8 +14,9 @@ using UnityEngine;
 public class Player : Unit
 {
     [Header("Default Weapons")]
-    public GameObject defaultSwordPrefab;
-    public GameObject defaultGunPrefab;
+    public Weapon defaultSwordPrefab;
+    public Weapon defaultGunPrefab;
+    public Weapon thirdWeaponPrefab;
 
     private bool canMove;
 
@@ -28,22 +29,24 @@ public class Player : Unit
         inventory = GetComponent<Inventory>();
         if (defaultSwordPrefab != null)
         {
-            GameObject swordGameObject = Instantiate(defaultSwordPrefab);
-            Weapon sword = swordGameObject.GetComponent<Weapon>();
+            Weapon sword = Instantiate(defaultSwordPrefab,gameObject.transform);
             inventory.AddToInventory(sword);
             SetLeftWeapon(sword);
             
         }
         if (defaultGunPrefab != null)
         {
-            GameObject gunGameObject = Instantiate(defaultGunPrefab);
-            Weapon gun = gunGameObject.GetComponent<Weapon>();
+            Weapon gun = Instantiate(defaultGunPrefab,gameObject.transform);
             inventory.AddToInventory(gun);
             SetRightWeapon(gun);
         }
         currentHealth = maxHealth;
         unitId = 1;
         canMove = true;
+
+        //adding in a third weapon just to test that the inventory UI works properly
+        Weapon third = Instantiate(thirdWeaponPrefab, gameObject.transform);
+        inventory.AddToInventory(third);
     }
 
     public void EquipWeapon(string weapon)

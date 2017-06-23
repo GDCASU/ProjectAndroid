@@ -22,7 +22,7 @@ public class DemoEnemy : Unit
     public bool target = false;
     public MovementPattern moveType = MovementPattern.Random;
     [Header("Default Weapons")]
-    public GameObject defaultWeaponPrefab;
+    public Weapon defaultWeaponPrefab;
     private Color color
     {
         get
@@ -44,8 +44,7 @@ public class DemoEnemy : Unit
         inventory = GetComponent<Inventory>();
         if (defaultWeaponPrefab != null)
         {
-            GameObject weaponGameObject = Instantiate(defaultWeaponPrefab);
-            Weapon weapon = weaponGameObject.GetComponent<Weapon>();
+            Weapon weapon = Instantiate(defaultWeaponPrefab);
             inventory.AddToInventory(weapon);
         }
         unitId = 0;
