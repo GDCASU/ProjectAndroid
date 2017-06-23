@@ -23,7 +23,8 @@ public class Tile : MonoBehaviour
 
     public delegate void TileEventHandler();
     public event TileEventHandler Enter = delegate { };
-    public event TileEventHandler Exit = delegate { }; 
+    public event TileEventHandler Exit = delegate { };
+    public event TileEventHandler Wait = delegate { };
 
     public void Start()
     {
@@ -32,6 +33,7 @@ public class Tile : MonoBehaviour
         {
             Enter += api.OnEnter;
             Exit += api.OnExit;
+            Wait += api.OnWait;
         }
     }
 
@@ -43,6 +45,11 @@ public class Tile : MonoBehaviour
     public void OnExit()
     {
         Exit();
+    }
+
+    public void OnWait()
+    {
+        Wait();
     }
 
     public void SetColor(Color newColor)

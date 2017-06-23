@@ -14,6 +14,8 @@ using UnityEngine;
 
 public class SimpleMeleeEnemy : Unit
 {
+    [Header("Default Weapons")]
+    public Weapon defaultWeaponPrefab;
 
     private Color color
     {
@@ -32,9 +34,14 @@ public class SimpleMeleeEnemy : Unit
 
     void Start()
     {
-        equippedWeapon = new Weapon(2, 1, "Simple Sword");
+        if(defaultWeaponPrefab != null)
+        {
+            Weapon weapon  = Instantiate(defaultWeaponPrefab);
+            inventory.AddToInventory(weapon);
+            equippedWeapon = weapon;
+        }
         currentHealth = maxHealth;
-        unitID = 0;
+        unitId = 0;
     }
 
     public override void Move()

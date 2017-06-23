@@ -125,7 +125,7 @@ public class TileMap : MonoBehaviour
 
     public void DamageTile(Tile tile, int damage, int sourceID)
     {
-        if (tile == null || tile.unit == null || tile.unit.getID() == sourceID) return;
+        if (tile == null || tile.unit == null || tile.unit.GetId() == sourceID) return;
         tile.unit.Damaged(damage, sourceID);
 
         if (!(tile.unit is Player)) EnemyMoveStep(); //only move if player hit enemy - must change in future

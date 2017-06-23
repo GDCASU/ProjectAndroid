@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Item {
+public class Item : MonoBehaviour {
 
     /*
      * Programmer: Michael Nahom
@@ -96,6 +96,13 @@ public class Item {
     public virtual void ApplyStatusEffect(Tile target)
     {
 
+    }
+
+    //this is the text that will be displayed in the inventory screens
+    public virtual string GetInventoryText()
+    {
+        string text = itemName;
+        return text;
     }
 
     private void OnDestroy()

@@ -4,29 +4,29 @@ using UnityEngine;
 
 public class AttackButton : MonoBehaviour {
 
-    public void SwordAttack()
+    //left and right refer to the UI orientation i.e.
+    //RightAttack is called by tapping the right button
+    public void RightAttack()
     {
         Attack(0);
     }
-    public void GunAttack()
+    public void LeftAttack()
     {
         Attack(1);
     }
 
 	private void Attack(byte type)
     {
-        GameObject plyObj = GameObject.FindGameObjectWithTag("Player");
-        if (plyObj == null) return;
-        Player player = plyObj.GetComponent<Player>();
+        Player player = Player.FindPlayer();
         if (player == null) return;
         if (type == 0)
         {
-            player.EquipWeapon("Sword");
+            player.EquipWeapon(player.GetRightWeapon());
             player.Attack();
         }
         else if (type == 1)
         {
-            player.EquipWeapon("Gun");
+            player.EquipWeapon(player.GetLeftWeapon());
             player.Attack();
         }
     }

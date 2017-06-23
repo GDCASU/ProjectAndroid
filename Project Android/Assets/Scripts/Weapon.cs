@@ -13,13 +13,6 @@ public class Weapon : Item {
     public int damage;
     public int range;
 
-    public Weapon(int damage, int range, string name = "???")
-    {
-        this.damage = damage;
-        this.range = range;
-        this.itemName = name;
-    }
-
     public virtual void PerformAttack(Unit attacker, int direction)
     {
         Tile target = attacker.tileMap.GetNeighbors(attacker.occupiedTile)[direction];
@@ -29,6 +22,16 @@ public class Weapon : Item {
             target = attacker.tileMap.GetNeighbors(target)[direction];
         }
         if (target)
-            attacker.tileMap.DamageTile(target, damage, attacker.getID());
+            attacker.tileMap.DamageTile(target, damage, attacker.GetId());
+    }
+
+    public override string GetInventoryText()
+    {
+        string text = itemName;
+        text += "\n\nDamage: ";
+        text += damage.ToString();
+        text += "\nRange: ";
+        text += range.ToString();
+        return text;
     }
 }
