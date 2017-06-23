@@ -18,6 +18,10 @@ public class GameMenuScript : MonoBehaviour {
 	
 	public Button resumeGameButton; //reference to resume game button in menu
 	
+	public Button quitGameButton; //reference to quit game button in menu
+	
+	public Button inventoryButton; //reference to inventory button
+	
 	// Use this for initialization
 	void Start () 
 	{
@@ -27,6 +31,7 @@ public class GameMenuScript : MonoBehaviour {
 		//set callback function for button
 		gameMenuButton.onClick.AddListener(GameMenuButtonClickProcess);
 		resumeGameButton.onClick.AddListener(ResumeGameButtonClickProcess);
+		quitGameButton.onClick.AddListener(QuitGameButtonClickProcess);
 	}
 	
 	// Update is called once per frame
@@ -39,12 +44,22 @@ public class GameMenuScript : MonoBehaviour {
 	{
 		//set game menu image to opposite of its acive status i.e. if active set inactive, if inactive set active
 		gameMenuImage.gameObject.SetActive(!gameMenuImage.gameObject.activeInHierarchy);
+		//set inventory button to opposite of game menu image game object active status
+		//i.e menu active, inventory button inactive
+		inventoryButton.gameObject.SetActive(!gameMenuImage.gameObject.activeInHierarchy);
 	}
 	
 	void ResumeGameButtonClickProcess()
 	{
 		//set game menu image to inactive
 		gameMenuImage.gameObject.SetActive(false);
+		//set inventory button to ative
+		inventoryButton.gameObject.SetActive(true);
+	}
+	
+	void QuitGameButtonClickProcess()
+	{
+		Application.Quit();
 	}
 	
 }
