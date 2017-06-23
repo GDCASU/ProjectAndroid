@@ -27,4 +27,9 @@ public class LandmineExample : TileAPI {
     {
         return;
     }
+
+    public override void OnWait()
+    {
+        return;
+    }
 }

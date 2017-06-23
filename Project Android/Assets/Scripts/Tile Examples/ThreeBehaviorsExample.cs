@@ -24,4 +24,9 @@ public class ThreeBehaviorsExample : TileAPI{
     {
         tile.HealUnit(health);
     }
+
+    public override void OnWait()
+    {
+        return;
+    }
 }

@@ -34,7 +34,7 @@ public class SimpleMeleeEnemy : Unit
     {
         equippedWeapon = new Weapon(2, 1, "Simple Sword");
         currentHealth = maxHealth;
-        unitID = 0;
+        unitId = 0;
     }
 
     public override void Move()

@@ -21,6 +21,8 @@ public class DemoEnemy : Unit
 
     public bool target = false;
     public MovementPattern moveType = MovementPattern.Random;
+    [Header("Default Weapons")]
+    public GameObject defaultWeaponPrefab;
     private Color color
     {
         get
@@ -39,8 +41,14 @@ public class DemoEnemy : Unit
     void Start()
     {
         currentHealth = maxHealth;
-        equippedWeapon = new Weapon(1, 1, "Weak Sword");
-        unitID = 0;
+        inventory = GetComponent<Inventory>();
+        if (defaultWeaponPrefab != null)
+        {
+            GameObject weaponGameObject = Instantiate(defaultWeaponPrefab);
+            Weapon weapon = weaponGameObject.GetComponent<Weapon>();
+            inventory.AddToInventory(weapon);
+        }
+        unitId = 0;
     }
 
     public override void Move()

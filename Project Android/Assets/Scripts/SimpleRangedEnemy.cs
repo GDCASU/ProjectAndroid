@@ -39,7 +39,7 @@ public class SimpleRangedEnemy : Unit
     {
         equippedWeapon = new Weapon(1, 4, "Simple Gun");
         currentHealth = maxHealth;
-        unitID = 0;
+        unitId = 0;
     }
 
     public override void Move()

@@ -29,6 +29,6 @@ public class Weapon : Item {
             target = attacker.tileMap.GetNeighbors(target)[direction];
         }
         if (target)
-            attacker.tileMap.DamageTile(target, damage, attacker.getID());
+            attacker.tileMap.DamageTile(target, damage, attacker.GetId());
     }
 }
