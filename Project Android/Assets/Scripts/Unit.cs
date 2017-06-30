@@ -16,34 +16,33 @@ using UnityEngine;
 
 public class Unit : MonoBehaviour
 {
-
     public Tile occupiedTile;
     public TileMap tileMap;
     public int direction;
     protected Inventory inventory;
-    public float moveDelay;
     public Weapon equippedWeapon;
     [Header("Health and Damage")]
     public RectTransform healthBar;
     public int maxHealth;
     protected int currentHealth;
-    
-    protected float moveTimer;
-    
+
+    public float turnTimer;
+    public float speed;
+    public bool isActiveUnit; //is this unit currently taking its turn?
+
 
     //UnitID is the "team" of the unit. Units on the same team can't damage eachother. 
     //Enemies have an ID of 0, the player has an ID of 1.
     public int unitId;
 
-    void Awake()
-    {
-        if (moveDelay == 0)
-            moveDelay = 1.0f;
-        moveTimer = Random.Range(0, moveDelay);
-    }
-
     void Start()
     {
+        Initialize();
+    }
+
+    public virtual void Initialize()
+    {
+        currentHealth = maxHealth;
         inventory = gameObject.GetComponent<Inventory>();
         if (equippedWeapon != null)
         {
@@ -51,28 +50,40 @@ public class Unit : MonoBehaviour
         }
     }
 
-    void Update()
-    {
-
-    }
-
     private void LateUpdate()
     {
         healthBar.localScale = new Vector3((float)currentHealth / (float)maxHealth, 1, 1);
     }
 
-    public virtual void MoveUpdate()
+    public virtual void DoTurn()
     {
-        if (moveTimer <= 0.0f)
-        {
-            Move();
-        }
-        moveTimer -= Time.deltaTime;
+        //will have to decide how to detect when each phase is finished and continue
+        //easily changed later, for now just execute them in order on one frame
+        Upkeep();
+        StartCoroutine(MainAction());
+    }
+
+    public virtual void Upkeep()
+    {
+        //tick status conditions
+    }
+
+    public virtual IEnumerator MainAction()
+    {
+        //move, attack
+        yield return new WaitForSeconds(0.01f); //wait for movement to finish
+        Move();
+        Downkeep();
+    }
+
+    public virtual void Downkeep()
+    {
+        TurnHandler.NextTurn();
     }
 
     public virtual void Move()
     {
-        moveTimer = moveDelay;
+        
     }
 
     public virtual void Attack()
