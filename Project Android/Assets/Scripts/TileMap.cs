@@ -28,7 +28,7 @@ public class TileMap : MonoBehaviour
 
     public Tile[,] map;
 
-    private DemoEnemy[] enemies;
+    private List<Unit> enemies;
 
     private void Start()
     {
@@ -40,17 +40,6 @@ public class TileMap : MonoBehaviour
             directory.tileList[i].GetComponent<Tile>().tileId = i;
         for (int i = 0; i < directory.unitList.Length; i++)
             directory.unitList[i].GetComponent<Unit>().unitId = i;
-    }
-
-    void Update()
-    {
-        if(!turnBased && enemies != null)
-        {
-            for (int i = 0; i < enemies.Length; i++)
-                enemies[i].MoveUpdate();
-        }
-        if(activePlayer)
-            activePlayer.GetComponent<Player>().MoveUpdate();
     }
 
     public void SetupMap()
@@ -71,6 +60,9 @@ public class TileMap : MonoBehaviour
     {
         if(activePlayer)
             activePlayer.transform.SetParent(null,true);
+        if(enemies != null)
+            enemies.Clear();
+        enemies = new List<Unit>();
         if (map != null)
             for (int i = 0; i < mapWidth; i++)
                 for (int j = 0; j < mapHeight; j++)
@@ -97,11 +89,20 @@ public class TileMap : MonoBehaviour
 
         if (unit is Player)
         {
-            EnemyMoveStep();
             if (newTile.tag == "Exit")
                 GameObject.FindWithTag("Overlord").GetComponent<Overlord>().NextLevel();
         }
         return true;
+    }
+
+    public void StartTurnQueue()
+    {
+        TurnHandler th = GetComponent<TurnHandler>();
+        th.EmptyQueue();
+        foreach (Unit enemy in enemies)
+            th.Queue(enemy);
+        th.QueueImmediate(activePlayer);
+        th.DoNextTurn();
     }
 
     public void SpawnPlayer(Tile tile)
@@ -111,24 +112,14 @@ public class TileMap : MonoBehaviour
             player = activePlayer;
         else
             player = (Player)SpawnUnit(tile,playerPrefab);
+        activePlayer = player;
         MoveUnit(player.occupiedTile, tile, player);
-    }
-
-    public void EnemyMoveStep()
-    {
-        if (turnBased && enemies != null)
-        {
-            for (int i = 0; i < enemies.Length; i++)
-                enemies[i].Move();
-        }
     }
 
     public void DamageTile(Tile tile, int damage, int sourceID)
     {
         if (tile == null || tile.unit == null || tile.unit.GetId() == sourceID) return;
         tile.unit.Damaged(damage, sourceID);
-
-        if (!(tile.unit is Player)) EnemyMoveStep(); //only move if player hit enemy - must change in future
     }
 
     public void HealTile(Tile tile, int health)
@@ -146,6 +137,7 @@ public class TileMap : MonoBehaviour
         tile.unit.occupiedTile = tile;
         tile.unit.tileMap = this;
         tile.unit.Rotate(1);
+        if (!(tile.unit is Player)) enemies.Add(tile.unit);
         return tile.unit;
     }
 

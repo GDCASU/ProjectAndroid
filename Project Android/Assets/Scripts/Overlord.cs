@@ -120,8 +120,8 @@ public class Overlord : MonoBehaviour
             if (scene.name == inGameScene)
             {
                 activeTileMap.turnBased = turnBased;
-                activeTileMap.LoadMapFromFile(levels[currentLevel]);
-                activeTileMap.SpawnPlayer(GameObject.FindWithTag("Entrance").GetComponent<Tile>());
+                currentLevel = -1;
+                NextLevel();
             }
             else
             {
@@ -137,6 +137,7 @@ public class Overlord : MonoBehaviour
         currentLevel++;
         activeTileMap.LoadMapFromFile(levels[currentLevel]);
         activeTileMap.SpawnPlayer(GameObject.FindWithTag("Entrance").GetComponent<Tile>());
+        activeTileMap.StartTurnQueue();
     }
 
     public void AdjustFixedCamera()
