@@ -101,6 +101,41 @@ public class TileMap : MonoBehaviour
         th.QueueImmediate(activePlayer);
         th.DoNextTurn();
     }
+    
+    public bool MoveLargeUnit(List<Tile> oldTiles, List<Tile> newTiles, LargeUnit unit) 
+    {
+        Vector3 unitPos = Vector3.zero;
+
+        foreach (Tile tile in newTiles)
+        {
+            if (!tile || (tile.unit && tile.unit != unit) || tile.impassible) return false;
+        }
+        
+        foreach (Tile tile in oldTiles)
+        {
+            if (tile)
+            {
+                tile.OnExit();
+                tile.unit = null;
+            }
+        }
+
+        foreach (Tile tile in newTiles)
+        {
+            unitPos += tile.transform.position; //Find the sum of the tile positions for calculating the average position
+            tile.unit = unit;
+            tile.OnEnter();
+        }
+
+        unitPos /= newTiles.Count; //Find the average position of all the tiles the unit occupies
+
+        //order is important for the tileAPI calls so that the unit is
+        //occupying the tiles that the method is called on when it is called.
+        unit.occupiedTiles = newTiles;
+        unit.transform.position = unitPos;
+
+        return true;
+    }
 
     public void SpawnPlayer(Tile tile)
     {
@@ -136,6 +171,24 @@ public class TileMap : MonoBehaviour
         tile.unit.Rotate(1);
         if (!(tile.unit is Player)) enemies.Add(tile.unit);
         return tile.unit;
+    }
+
+    public LargeUnit SpawnLargeUnit(List<Tile> tiles, GameObject unit)
+    {
+        Vector3 unitPos = Vector3.zero;
+        GameObject spawn = Instantiate(unit, unitPos, Quaternion.Euler(0, 270, 0));
+        LargeUnit spawnedUnit = spawn.GetComponent<LargeUnit>();
+        foreach (Tile tile in tiles)
+        {
+            unitPos += tile.transform.position;
+            tile.unit = spawnedUnit;
+        }
+        unitPos /= tiles.Count;
+        spawn.transform.position = unitPos;
+        spawnedUnit.occupiedTiles = tiles;
+        spawnedUnit.tileMap = this;
+        spawnedUnit.Rotate(1);
+        return spawnedUnit;
     }
 
     public bool ValidPos(int x, int y)
