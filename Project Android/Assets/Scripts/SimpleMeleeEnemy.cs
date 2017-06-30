@@ -32,17 +32,6 @@ public class SimpleMeleeEnemy : Unit
     private int randomInt;
     private int moveVar;
 
-    void Start()
-    {
-        if(defaultWeaponPrefab != null)
-        {
-            Weapon weapon  = Instantiate(defaultWeaponPrefab);
-            inventory.AddToInventory(weapon);
-            equippedWeapon = weapon;
-        }
-        currentHealth = maxHealth;
-        unitId = 0;
-    }
 
     public override void Move()
     {

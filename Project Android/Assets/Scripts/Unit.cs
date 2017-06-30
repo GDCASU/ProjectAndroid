@@ -71,7 +71,7 @@ public class Unit : MonoBehaviour
     public virtual IEnumerator MainAction()
     {
         //move, attack
-        yield return new WaitForSeconds(0.5f); //wait for movement to finish
+        yield return new WaitForSeconds(0.01f); //wait for movement to finish
         Move();
         Downkeep();
     }

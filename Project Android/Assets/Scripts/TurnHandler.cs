@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TurnHandler : MonoBehaviour {
+public class TurnHandler : MonoBehaviour
+{
 
     static TurnHandler handler;
 
@@ -28,7 +29,6 @@ public class TurnHandler : MonoBehaviour {
             }
         }
         turnQueue.Add(unit); //add to end if it has the biggest timer
-        Debug.Log("Turn queue: " + turnQueue);
     }
 
     //can be used to give a unit absolute initiative
@@ -47,22 +47,26 @@ public class TurnHandler : MonoBehaviour {
         }
         if (turnQueue.Count > 0)
         {
-            activeUnit = turnQueue[0];
-            turnQueue.RemoveAt(0);
+            activeUnit = null;
+            while (activeUnit == null && turnQueue.Count > 0)
+            {
+                activeUnit = turnQueue[0];
+                turnQueue.RemoveAt(0);
+            }
             foreach (Unit u in turnQueue)
                 u.turnTimer -= activeUnit.turnTimer;
         }
         activeUnit.DoTurn();
-        
+
     }
 
     public void EmptyQueue()
     {
         turnQueue.Clear();
     }
-	
+
     //assumes the current unit's downkeep has already executed
-	public static void NextTurn()
+    public static void NextTurn()
     {
         handler.DoNextTurn();
     }

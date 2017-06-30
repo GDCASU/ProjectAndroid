@@ -25,13 +25,10 @@ public class Overlord : MonoBehaviour
     public string inGameScene;
 
     public int selectedControl;
-    public int controlProgress;
 
     public TileMap activeTileMap;
 
-    int[] controlOrder;
     static bool started = false;
-    bool turnBased;
 
 
     void Awake()
@@ -39,14 +36,6 @@ public class Overlord : MonoBehaviour
         if (started) Destroy(gameObject);
         started = true;
         DontDestroyOnLoad(gameObject);
-        controlOrder = new int[controlButtons.Length];
-        for (int i = 0; i < controlButtons.Length; i++)
-        {
-            int j = Random.Range(0, i + 1);
-            controlOrder[i] = controlOrder[j];
-            controlOrder[j] = i;
-        }
-        controlProgress = 0;
 
         AssignActiveMap();
     }
@@ -54,13 +43,12 @@ public class Overlord : MonoBehaviour
     public void SetupControlButtons()
     {
         GameObject controlSchemeContainer = GameObject.Find("ControlSchemes");
-        for (int i = 0; i < controlOrder.Length; i++)
+        for (int i = 0; i < controlButtons.Length; i++)
         {
-            int index = controlOrder[i];
-            GameObject control = Instantiate(controlButtons[index], controlSchemeContainer.transform);
+            GameObject control = Instantiate(controlButtons[i], controlSchemeContainer.transform);
             control.GetComponent<Toggle>().group = controlSchemeContainer.GetComponent<ToggleGroup>();
-            control.GetComponent<Toggle>().onValueChanged.AddListener((bool blah) => ControlChange(index));
-            if (i == controlProgress)
+            control.GetComponent<Toggle>().onValueChanged.AddListener((bool blah) => ControlChange(i));
+            if (i == 0)
                 control.GetComponent<Toggle>().isOn = true;
         }
     }
@@ -85,22 +73,14 @@ public class Overlord : MonoBehaviour
         leftHanded = left;
     }
 
-    public void StartGame(bool tb)
+    public void StartGame()
     {
-        turnBased = tb;
         SceneManager.LoadScene(inGameScene);
     }
 
     public void EnterTestRoom()
     {
         SceneManager.LoadScene(testRoomScene);
-    }
-
-    public void TasksCompleted()
-    {
-        SceneManager.LoadScene(titleScreenScene);
-        if (controlProgress < controls.Length)
-            controlProgress++;
     }
 
     public void SceneChanged(Scene scene, LoadSceneMode mode)
@@ -119,7 +99,6 @@ public class Overlord : MonoBehaviour
 
             if (scene.name == inGameScene)
             {
-                activeTileMap.turnBased = turnBased;
                 currentLevel = -1;
                 NextLevel();
             }

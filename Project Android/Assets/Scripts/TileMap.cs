@@ -17,13 +17,10 @@ public class TileMap : MonoBehaviour
     [Header("Map Settings")]
     public int mapWidth;
     public int mapHeight;
-    [Header("Prototype Settings")]
-    public bool turnBased;
     [Header("Prefabs")]
     public SerializeDirectory directory;
     public GameObject tilePrefab;
     public GameObject playerPrefab;
-    public GameObject enemyPrefab;
     public Player activePlayer;
 
     public Tile[,] map;
@@ -205,18 +202,22 @@ public class TileMap : MonoBehaviour
 
     public void LoadMapFromFile(string filename)
     {
-        if (!Directory.Exists(Application.dataPath + "/Maps/")) Directory.CreateDirectory(Application.dataPath + "/Maps/");
-        FileStream file = File.OpenRead(Application.dataPath + "/Maps/" + filename);
+        string dir = Application.dataPath + "/Maps/";
+        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+        FileStream file = File.OpenRead(dir + filename);
         Deserialize(file);
         file.Close();
+        Debug.Log("Map loaded from " + dir + filename);
     }
 
     public void SaveMapToFile(string filename)
     {
-        if (!Directory.Exists(Application.dataPath + "/Maps/")) Directory.CreateDirectory(Application.dataPath + "/Maps/");
-        FileStream file = File.OpenWrite(Application.dataPath + "/Maps/" + filename);
+        string dir = Application.dataPath + "/Maps/";
+        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+        FileStream file = File.OpenWrite(dir + filename);
         Serialize(file);
         file.Close();
+        Debug.Log("Map saved to " + dir + filename);
     }
 
     [System.Serializable]

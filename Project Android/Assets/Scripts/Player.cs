@@ -41,7 +41,7 @@ public class Player : Unit
             SetRightWeapon(gun);
         }
         currentHealth = maxHealth;
-        unitId = 1;
+        //unitId = 1;
         canMove = true;
 
         //adding in a third weapon just to test that the inventory UI works properly
