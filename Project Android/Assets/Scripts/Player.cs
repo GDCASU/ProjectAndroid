@@ -13,25 +13,52 @@ using UnityEngine;
 
 public class Player : Unit
 {
+    [Header("Default Weapons")]
+    public Weapon defaultSwordPrefab;
+    public Weapon defaultGunPrefab;
+    public Weapon thirdWeaponPrefab;
+
     private bool canMove;
+
+    //the player has access to two weapons at once
+    private Weapon leftWeapon;
+    private Weapon rightWeapon;
 
     void Start()
     {
-        Weapon sword = new Weapon(5, 1, "Sword"); //5 damage, 1 range
-        Weapon gun = new Weapon(3, 5, "Gun"); //4 damage, 5 range
-        equippedWeapon = sword;
-        GetComponent<Inventory>().AddToInventory(sword);
-        GetComponent<Inventory>().AddToInventory(gun);
+        inventory = GetComponent<Inventory>();
+        if (defaultSwordPrefab != null)
+        {
+            Weapon sword = Instantiate(defaultSwordPrefab,gameObject.transform);
+            inventory.AddToInventory(sword);
+            SetLeftWeapon(sword);
+            
+        }
+        if (defaultGunPrefab != null)
+        {
+            Weapon gun = Instantiate(defaultGunPrefab,gameObject.transform);
+            inventory.AddToInventory(gun);
+            SetRightWeapon(gun);
+        }
         currentHealth = maxHealth;
-        unitID = 1;
+        unitId = 1;
         canMove = true;
+
+        //adding in a third weapon just to test that the inventory UI works properly
+        Weapon third = Instantiate(thirdWeaponPrefab, gameObject.transform);
+        inventory.AddToInventory(third);
     }
 
     public void EquipWeapon(string weapon)
     {
         Weapon wep = (Weapon)inventory.GetContents().Find(w => w.itemName == weapon);
         if (wep != null)
-            equippedWeapon = wep;
+            EquipWeapon(wep);
+    }
+
+    public void EquipWeapon(Weapon weapon) 
+    {
+        equippedWeapon = weapon;
     }
 
     //Move directly to a tapped tile
@@ -103,5 +130,31 @@ public class Player : Unit
     public override void KillUnit()
     {
         base.KillUnit();
+    }
+
+    public Weapon GetLeftWeapon()
+    {
+        return leftWeapon;
+    }
+
+    public Weapon GetRightWeapon()
+    {
+        return rightWeapon;
+    }
+
+    public void SetLeftWeapon(Weapon weapon)
+    {
+        if (inventory.Contains(weapon))
+        {
+            leftWeapon = weapon;
+        }
+    }
+
+    public void SetRightWeapon(Weapon weapon)
+    {
+        if (inventory.Contains(weapon))
+        {
+            rightWeapon = weapon;
+        }
     }
 }

@@ -29,4 +29,9 @@ public class DamageAndRotateExample : TileAPI {
     {
         return;
     }
+
+    public override void OnWait()
+    {
+        return;
+    }
 }

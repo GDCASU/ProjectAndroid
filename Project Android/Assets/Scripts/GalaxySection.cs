@@ -15,6 +15,9 @@ public class GalaxySection : MonoBehaviour {
 	//camera position to see only this galaxy section
 	public float sectionCameraX, sectionCameraY;
 	
+	//camera size assuming using orthographic camera
+	public float cameraZoomOrthographic;
+	
 	//references to sections adjacent to this section
 	public GalaxySection upSection;
 	public GalaxySection leftSection;
@@ -25,6 +28,8 @@ public class GalaxySection : MonoBehaviour {
 	
 	public bool lockStatus;
 	
+	public GameObject overworldShipContainer;
+	
 	// Use this for initialization
 	void Start () 
 	{
@@ -32,7 +37,11 @@ public class GalaxySection : MonoBehaviour {
 	}
 	
 	// Update is called once per frame
-	void Update () {
-		
+	void Update () 
+	{
+		//If locked, set overworld ship container game object to inactive
+		//otherwise set to active 
+		if(lockStatus){overworldShipContainer.SetActive(false);}
+		else if(!lockStatus){overworldShipContainer.SetActive(true);}
 	}
 }

@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class GalaxyOverworld : MonoBehaviour {
+	
 
 	/*
 		Programmer: Pablo Camacho
@@ -11,14 +12,8 @@ public class GalaxyOverworld : MonoBehaviour {
 		Description:
 		I made this script to manage the galaxy sections, keep player from moving in locked galaxy sections and where there are none.
 		It moves the camera from one galaxy section to another.
+		
 	*/
-	
-	//references to galaxy sections
-	public GalaxySection section1;
-	public GalaxySection section2;
-	public GalaxySection section3;
-	public GalaxySection section4;
-	public GalaxySection section5;
 	
 	//references to text of direction arrows used for moving to other sections
 	public Text upSectionText;
@@ -72,7 +67,11 @@ public class GalaxyOverworld : MonoBehaviour {
 		Camera.main.gameObject.transform.position = new Vector3(currentSection.sectionCameraX,
 																	currentSection.sectionCameraY,
 																	z);
+		//zoom in on camera assuming it is orthographic
+		Camera.main.orthographicSize = currentSection.cameraZoomOrthographic;
+		//check for locks in adjacent section and set locks in buttons if needed
 		CheckAndSetAdjacentSectionsForLocks();
+		//set callback functions for newly created buttons
 		SetCallbackFunctionForDirectionButtons();
 	}
 	
@@ -81,15 +80,10 @@ public class GalaxyOverworld : MonoBehaviour {
 		
 		if(currentSection.leftSection != null)
 		{
-			//move camera to left section
-			Camera.main.gameObject.transform.position = new Vector3(currentSection.leftSection.sectionCameraX,
-																	currentSection.leftSection.sectionCameraY,
-																	z);
 			//make left section the current section
 			currentSection = currentSection.leftSection;
-			
-			CheckAndSetAdjacentSectionsForLocks();
-			SetCallbackFunctionForDirectionButtons();
+			//move to this section
+			MoveToThisSection(currentSection);
 		}
 	}
 	
@@ -97,15 +91,11 @@ public class GalaxyOverworld : MonoBehaviour {
 	{
 		if(currentSection.upSection != null)
 		{
-			//move camera to up section
-			Camera.main.gameObject.transform.position = new Vector3(currentSection.upSection.sectionCameraX,
-																	currentSection.upSection.sectionCameraY,
-																	z);
 			//make up section the current section
 			currentSection = currentSection.upSection;
 			
-			CheckAndSetAdjacentSectionsForLocks();
-			SetCallbackFunctionForDirectionButtons();
+			//move to this section
+			MoveToThisSection(currentSection);
 		}
 	}
 	
@@ -113,15 +103,11 @@ public class GalaxyOverworld : MonoBehaviour {
 	{
 		if(currentSection.downSection != null)
 		{
-			//move camera to down section
-			Camera.main.gameObject.transform.position = new Vector3(currentSection.downSection.sectionCameraX,
-																	currentSection.downSection.sectionCameraY,
-																	z);
 			//make down section the current section
 			currentSection = currentSection.downSection;
 			
-			CheckAndSetAdjacentSectionsForLocks();
-			SetCallbackFunctionForDirectionButtons();
+			//move to this section
+			MoveToThisSection(currentSection);
 		}
 	}
 	
@@ -129,15 +115,12 @@ public class GalaxyOverworld : MonoBehaviour {
 	{
 		if(currentSection.rightSection != null)
 		{
-			//move camera to right section
-			Camera.main.gameObject.transform.position = new Vector3(currentSection.rightSection.sectionCameraX,
-																	currentSection.rightSection.sectionCameraY,
-																	z);
+			
 			//make right section the current section
 			currentSection = currentSection.rightSection;
 			
-			CheckAndSetAdjacentSectionsForLocks();
-			SetCallbackFunctionForDirectionButtons();
+			//move to this section
+			MoveToThisSection(currentSection);
 		}
 	}
 	
