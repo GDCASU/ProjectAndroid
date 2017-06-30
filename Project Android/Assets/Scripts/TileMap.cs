@@ -17,18 +17,15 @@ public class TileMap : MonoBehaviour
     [Header("Map Settings")]
     public int mapWidth;
     public int mapHeight;
-    [Header("Prototype Settings")]
-    public bool turnBased;
     [Header("Prefabs")]
     public SerializeDirectory directory;
     public GameObject tilePrefab;
     public GameObject playerPrefab;
-    public GameObject enemyPrefab;
     public Player activePlayer;
 
     public Tile[,] map;
 
-    private DemoEnemy[] enemies;
+    private List<Unit> enemies;
 
     private void Start()
     {
@@ -40,17 +37,6 @@ public class TileMap : MonoBehaviour
             directory.tileList[i].GetComponent<Tile>().tileId = i;
         for (int i = 0; i < directory.unitList.Length; i++)
             directory.unitList[i].GetComponent<Unit>().unitId = i;
-    }
-
-    void Update()
-    {
-        if(!turnBased && enemies != null)
-        {
-            for (int i = 0; i < enemies.Length; i++)
-                enemies[i].MoveUpdate();
-        }
-        if(activePlayer)
-            activePlayer.GetComponent<Player>().MoveUpdate();
     }
 
     public void SetupMap()
@@ -71,6 +57,9 @@ public class TileMap : MonoBehaviour
     {
         if(activePlayer)
             activePlayer.transform.SetParent(null,true);
+        if(enemies != null)
+            enemies.Clear();
+        enemies = new List<Unit>();
         if (map != null)
             for (int i = 0; i < mapWidth; i++)
                 for (int j = 0; j < mapHeight; j++)
@@ -97,10 +86,54 @@ public class TileMap : MonoBehaviour
 
         if (unit is Player)
         {
-            EnemyMoveStep();
             if (newTile.tag == "Exit")
                 GameObject.FindWithTag("Overlord").GetComponent<Overlord>().NextLevel();
         }
+        return true;
+    }
+
+    public void StartTurnQueue()
+    {
+        TurnHandler th = GetComponent<TurnHandler>();
+        th.EmptyQueue();
+        foreach (Unit enemy in enemies)
+            th.Queue(enemy);
+        th.QueueImmediate(activePlayer);
+        th.DoNextTurn();
+    }
+    
+    public bool MoveLargeUnit(List<Tile> oldTiles, List<Tile> newTiles, LargeUnit unit) 
+    {
+        Vector3 unitPos = Vector3.zero;
+
+        foreach (Tile tile in newTiles)
+        {
+            if (!tile || (tile.unit && tile.unit != unit) || tile.impassible) return false;
+        }
+        
+        foreach (Tile tile in oldTiles)
+        {
+            if (tile)
+            {
+                tile.OnExit();
+                tile.unit = null;
+            }
+        }
+
+        foreach (Tile tile in newTiles)
+        {
+            unitPos += tile.transform.position; //Find the sum of the tile positions for calculating the average position
+            tile.unit = unit;
+            tile.OnEnter();
+        }
+
+        unitPos /= newTiles.Count; //Find the average position of all the tiles the unit occupies
+
+        //order is important for the tileAPI calls so that the unit is
+        //occupying the tiles that the method is called on when it is called.
+        unit.occupiedTiles = newTiles;
+        unit.transform.position = unitPos;
+
         return true;
     }
 
@@ -111,24 +144,14 @@ public class TileMap : MonoBehaviour
             player = activePlayer;
         else
             player = (Player)SpawnUnit(tile,playerPrefab);
+        activePlayer = player;
         MoveUnit(player.occupiedTile, tile, player);
-    }
-
-    public void EnemyMoveStep()
-    {
-        if (turnBased && enemies != null)
-        {
-            for (int i = 0; i < enemies.Length; i++)
-                enemies[i].Move();
-        }
     }
 
     public void DamageTile(Tile tile, int damage, int sourceID)
     {
         if (tile == null || tile.unit == null || tile.unit.GetId() == sourceID) return;
         tile.unit.Damaged(damage, sourceID);
-
-        if (!(tile.unit is Player)) EnemyMoveStep(); //only move if player hit enemy - must change in future
     }
 
     public void HealTile(Tile tile, int health)
@@ -146,7 +169,26 @@ public class TileMap : MonoBehaviour
         tile.unit.occupiedTile = tile;
         tile.unit.tileMap = this;
         tile.unit.Rotate(1);
+        if (!(tile.unit is Player)) enemies.Add(tile.unit);
         return tile.unit;
+    }
+
+    public LargeUnit SpawnLargeUnit(List<Tile> tiles, GameObject unit)
+    {
+        Vector3 unitPos = Vector3.zero;
+        GameObject spawn = Instantiate(unit, unitPos, Quaternion.Euler(0, 270, 0));
+        LargeUnit spawnedUnit = spawn.GetComponent<LargeUnit>();
+        foreach (Tile tile in tiles)
+        {
+            unitPos += tile.transform.position;
+            tile.unit = spawnedUnit;
+        }
+        unitPos /= tiles.Count;
+        spawn.transform.position = unitPos;
+        spawnedUnit.occupiedTiles = tiles;
+        spawnedUnit.tileMap = this;
+        spawnedUnit.Rotate(1);
+        return spawnedUnit;
     }
 
     public bool ValidPos(int x, int y)
@@ -213,18 +255,22 @@ public class TileMap : MonoBehaviour
 
     public void LoadMapFromFile(string filename)
     {
-        if (!Directory.Exists(Application.dataPath + "/Maps/")) Directory.CreateDirectory(Application.dataPath + "/Maps/");
-        FileStream file = File.OpenRead(Application.dataPath + "/Maps/" + filename);
+        string dir = Application.dataPath + "/Maps/";
+        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+        FileStream file = File.OpenRead(dir + filename);
         Deserialize(file);
         file.Close();
+        Debug.Log("Map loaded from " + dir + filename);
     }
 
     public void SaveMapToFile(string filename)
     {
-        if (!Directory.Exists(Application.dataPath + "/Maps/")) Directory.CreateDirectory(Application.dataPath + "/Maps/");
-        FileStream file = File.OpenWrite(Application.dataPath + "/Maps/" + filename);
+        string dir = Application.dataPath + "/Maps/";
+        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+        FileStream file = File.OpenWrite(dir + filename);
         Serialize(file);
         file.Close();
+        Debug.Log("Map saved to " + dir + filename);
     }
 
     [System.Serializable]

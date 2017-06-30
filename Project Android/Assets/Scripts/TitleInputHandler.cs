@@ -20,9 +20,9 @@ public class TitleInputHandler : MonoBehaviour {
         overlord.SetLeftHanded(left);
     }
 
-    public void StartTasks(bool turnbased)
+    public void StartGame()
     {
-        overlord.StartGame(turnbased);
+        overlord.StartGame();
     }
 
     public void EnterTestRoom()

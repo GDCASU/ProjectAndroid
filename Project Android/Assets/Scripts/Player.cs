@@ -41,7 +41,7 @@ public class Player : Unit
             SetRightWeapon(gun);
         }
         currentHealth = maxHealth;
-        unitId = 1;
+        //unitId = 1;
         canMove = true;
 
         //adding in a third weapon just to test that the inventory UI works properly
@@ -77,7 +77,7 @@ public class Player : Unit
             else Rotate(1);
         }
         if (Mathf.Abs(dx) > 1 || Mathf.Abs(dy) > 1 || (Mathf.Abs(dx) == 1 && Mathf.Abs(dy) == 1)) return;
-        if (!tile.impassible && tile.unit == null && (canMove || tileMap.turnBased))
+        if (!tile.impassible && tile.unit == null && canMove)
         {
             tileMap.MoveUnit(occupiedTile, tile, this);
 
@@ -85,6 +85,7 @@ public class Player : Unit
 
             base.Move();
             canMove = false;
+            TurnHandler.NextTurn();
         }
     }
 
@@ -100,7 +101,7 @@ public class Player : Unit
         Tile dest = tileMap.GetNeighbors(xPos, yPos)[direction];
         if (dest == null) return;
 
-        if (canMove || tileMap.turnBased)
+        if (canMove)
         {
             Rotate(direction);
 
@@ -111,6 +112,7 @@ public class Player : Unit
 
             base.Move();
             canMove = false;
+            TurnHandler.NextTurn();
         }
 
     }
@@ -118,6 +120,11 @@ public class Player : Unit
     public override void Move()
     {
         canMove = true;
+    }
+
+    public override void Downkeep()
+    {
+        
     }
 
     public static Player FindPlayer()
