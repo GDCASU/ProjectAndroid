@@ -56,8 +56,8 @@ public class PlayerCamera : MonoBehaviour {
 	//function to initialize reference to player game object since player is placed in scene from another scene
 	void initPlayerReference()
 	{
-		// if current scene is in Prototype2 scene
-			if(SceneManager.GetActiveScene().name == "Prototype2")
+		// if current scene is in InGame scene
+			if(SceneManager.GetActiveScene().name == "InGame")
 			{
 				player = Player.FindPlayer(); //get reference to Player prefab and assign it to player
 			}
