@@ -10,13 +10,6 @@ using UnityEngine;
     Player class. Has methods for moving to a specific tile given the goal, moving based on D-Pad and Joystick movement, and Attacking 
     the tile directly in front of the player.
  */
- 
- /*
- * Programmer: Edward Borroughs
- * Date: 07/10/17
- * Description:
-    Added PlayerData public variable to save and load data with GlobalCOntrol.
- */
 
 public class Player : Unit
 {
@@ -30,8 +23,6 @@ public class Player : Unit
     //the player has access to two weapons at once
     private Weapon leftWeapon;
     private Weapon rightWeapon;
-    
-    public PlayerData localData;
 
     void Start()
     {
@@ -163,8 +154,6 @@ public class Player : Unit
         if (inventory.Contains(weapon))
         {
             leftWeapon = weapon;
-            localData.leftWeaponDamage = leftWeapon.damage;
-            localData.leftWeaponRange = leftWeapon.range;
         }
     }
 
@@ -173,8 +162,6 @@ public class Player : Unit
         if (inventory.Contains(weapon))
         {
             rightWeapon = weapon;
-            localData.rightWeaponDamage = rightWeapon.damage;
-            localData.rightWeaponRange = rightWeapon.range;
         }
     }
 }

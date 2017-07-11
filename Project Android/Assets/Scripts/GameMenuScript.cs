@@ -59,7 +59,6 @@ public class GameMenuScript : MonoBehaviour {
 	
 	void QuitGameButtonClickProcess()
 	{
-		GameObject.FindWithTag("Global Save Load Object").GetComponent<GlobalControl>().SaveData();
 		Application.Quit();
 	}
 	
