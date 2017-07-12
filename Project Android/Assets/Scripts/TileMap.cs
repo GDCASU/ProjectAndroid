@@ -257,20 +257,20 @@ public class TileMap : MonoBehaviour
     {
         string dir = Application.dataPath + "/Maps/";
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-        FileStream file = File.OpenRead(dir + filename);
+        FileStream file = File.OpenRead(dir + filename + ".map");
         Deserialize(file);
         file.Close();
-        Debug.Log("Map loaded from " + dir + filename);
+        Debug.Log("Map loaded from " + dir + filename + ".map");
     }
 
     public void SaveMapToFile(string filename)
     {
         string dir = Application.dataPath + "/Maps/";
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-        FileStream file = File.OpenWrite(dir + filename);
+        FileStream file = File.OpenWrite(dir + filename + ".map");
         Serialize(file);
         file.Close();
-        Debug.Log("Map saved to " + dir + filename);
+        Debug.Log("Map saved to " + dir + filename + ".map");
     }
 
     [System.Serializable]

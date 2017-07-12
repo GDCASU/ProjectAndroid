@@ -25,17 +25,9 @@ public class LevelMenu : MonoBehaviour {
 	// Use this for initialization
 	void Start () 
 	{
-		levelMenuGameObject.SetActive(false); //set level menu game object to start inactive
-		
 		//set callback functions for buttons when clicked
 		returnToMapButton.onClick.AddListener(ReturnToMapButtonClickProcess);
 		startLevelButton.onClick.AddListener(StartLevelButtonClickProcess);
-	}
-	
-	// Update is called once per frame
-	void Update () 
-	{
-		
 	}
 	
 	void ReturnToMapButtonClickProcess()

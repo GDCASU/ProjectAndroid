@@ -42,9 +42,8 @@ public class GalaxyOverworld : MonoBehaviour {
 		downSectionText.text = " ";
 		leftSectionText.text = " ";
 		rightSectionText.text = " ";
-		
-		MoveToThisSection(currentSection);
-		
+
+        MoveToThisSection(currentSection);
 	}
 	
 	// Update is called once per frame
