@@ -12,6 +12,13 @@ using UnityEngine;
  * Date: 5/25/17
  * Description:
     All units now have health, a health bar, and can be damaged. 
+
+ * Programmer: Edward Borroughs
+ * Date: 7/12/17
+ * Description:
+    Added a list to keep track of the stauses a unit is suffering from,
+    an enum for the different types of stauses, and the upkeep method that 
+    checks all of the unit's current statuses and applies their effects. 
  */
 
 public class Unit : MonoBehaviour
@@ -21,6 +28,7 @@ public class Unit : MonoBehaviour
     public int direction;
     protected Inventory inventory;
     public Weapon equippedWeapon;
+    public List<Status> unitStatus; //List of the unit's currennt statuses
     [Header("Health and Damage")]
     public RectTransform healthBar;
     public int maxHealth;
@@ -29,6 +37,8 @@ public class Unit : MonoBehaviour
     public float turnTimer;
     public float speed;
     public bool isActiveUnit; //is this unit currently taking its turn?
+
+    protected bool movedThisTurn;
 
 
     //UnitID is the "team" of the unit. Units on the same team can't damage eachother. 
@@ -59,13 +69,24 @@ public class Unit : MonoBehaviour
     {
         //will have to decide how to detect when each phase is finished and continue
         //easily changed later, for now just execute them in order on one frame
+        movedThisTurn = false;
         Upkeep();
         StartCoroutine(MainAction());
+        if (movedThisTurn == false) occupiedTile.OnWait();
     }
 
     public virtual void Upkeep()
     {
         //tick status conditions
+        foreach (Status status in unitStatus)
+        {
+            //Add addditional status effects here
+            switch(status)
+            {
+                case Status.Fire:
+                    return;
+            }
+        }
     }
 
     public virtual IEnumerator MainAction()
@@ -83,7 +104,7 @@ public class Unit : MonoBehaviour
 
     public virtual void Move()
     {
-        
+        movedThisTurn = true;
     }
 
     public virtual void Attack()
@@ -149,5 +170,11 @@ public class Unit : MonoBehaviour
 
         Tile target = tileMap.GetNeighbors(xPos, yPos)[direction];
         return target;
+    }
+
+    //Add additional statuses here
+    public enum Status
+    {
+        Fire
     }
 }

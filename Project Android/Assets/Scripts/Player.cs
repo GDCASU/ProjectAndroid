@@ -120,6 +120,7 @@ public class Player : Unit
 
     public override void Move()
     {
+        base.Move();
         canMove = true;
     }
 
