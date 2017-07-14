@@ -44,12 +44,6 @@ public class GalaxySectionUpdate : MonoBehaviour {
 		else if(!initialLockStatus){SetToUnlocked();}
 	}
 	
-	// Update is called once per frame
-	void Update () 
-	{
-		
-	}
-	
 	private void calculateSectionBorder()
 	{
 		//calculate section border x and section border y as half of circle section length

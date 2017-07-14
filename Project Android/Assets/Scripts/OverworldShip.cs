@@ -4,23 +4,36 @@ using UnityEngine;
 
 public class OverworldShip : MonoBehaviour {
 	
-	public enum ModelShipType
+    //current status of ship - needs to be saved
+	public enum ShipStatus
 	{
-		COMPLETED = 0, INCOMPLETE, SPECIAL_INCOMPLETE, INVISIBLE
-	};
+		Complete = 0, Incomplete, IncompleteSpecial, Invisible
+	}
+
+    //ship size - assigned by New Game, needs to be saved
+    public enum ShipSize
+    {
+        Small = 0, Medium, Large
+    }
+
+    //ship zone - assigned in inspector, no need to save
+    public enum ShipZone
+    {
+        First = 0, Second, Third
+    }
 	
-	public ModelShipType shipType;
+	public ShipStatus status;
+    public ShipSize size;
+    public ShipZone zone;
 	
 	//references to prefabs to ship models for specific types of ship such as completed, incomplete, and special
-	public GameObject inCompleteShipModel;
+	public GameObject incompleteShipModel;
 	public GameObject completedShipModel;
 	public GameObject specialIncompeleteShipModel;
 	
 	public GameObject visualCapsuleReference; //reference to capsule use to help visualize rotation and position of ship model
 	
 	private GameObject shipModel; //ship model that will be assigned a reference to any prefab of ship model
-	
-	public string sceneLevelName; //name of scene that contains level to enter 
 	
 	public string overworldShipName;
 	
@@ -31,41 +44,35 @@ public class OverworldShip : MonoBehaviour {
         visualCapsuleReference.SetActive(false);
 
         //depending on the ship type set, activate the game object of the ship type selected and deactive others
-        if (shipType == ModelShipType.COMPLETED)
+        if (status == ShipStatus.Complete)
 		{
 			//assign a copy of prefab for completed ship model to shipModel 
 			shipModel = Instantiate(completedShipModel, 
-									new Vector3(transform.position.x, transform.position.y, transform.position.z), 
+									transform.position, 
 									completedShipModel.transform.rotation);
 		}
-		else if(shipType == ModelShipType.INCOMPLETE)
+		else if(status == ShipStatus.Incomplete)
 		{
 			//assign a copy of prefab for completed ship model to shipModel 
-			shipModel = Instantiate(inCompleteShipModel, 
-									new Vector3(transform.position.x, transform.position.y, transform.position.z), 
-									inCompleteShipModel.transform.rotation);
+			shipModel = Instantiate(incompleteShipModel, 
+									transform.position, 
+									incompleteShipModel.transform.rotation);
 		}
-		else if(shipType == ModelShipType.SPECIAL_INCOMPLETE)
+		else if(status == ShipStatus.IncompleteSpecial)
 		{
 			//assign a copy of prefab for completed ship model to shipModel 
 			shipModel = Instantiate(specialIncompeleteShipModel, 
-									new Vector3(transform.position.x, transform.position.y, transform.position.z), 
+									transform.position, 
 									specialIncompeleteShipModel.transform.rotation);
 		}
 
-		if(shipType != ModelShipType.INVISIBLE)
+		if(status != ShipStatus.Invisible)
 		{
             //set parent for ship model to that of visual capsule reference which is the overworld ship
             shipModel.transform.SetParent(visualCapsuleReference.transform.parent);
             //set to shipModel gameobject to active
             shipModel.SetActive(true);
         }
-		
-	}
-	
-	// Update is called once per frame
-	void Update () 
-	{
 		
 	}
 }

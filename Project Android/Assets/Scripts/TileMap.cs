@@ -333,6 +333,7 @@ public class TileMap : MonoBehaviour
                 {
                     SpawnUnit(map[i, j], directory.unitList[sTile.unitID]);
                 }
+                if (map[i, j].tag == "Entrance") SpawnPlayer(map[i, j]);
             }
     }
 }

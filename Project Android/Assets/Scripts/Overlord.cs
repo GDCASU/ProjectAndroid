@@ -13,23 +13,36 @@ using UnityEngine.UI;
 
 public class Overlord : MonoBehaviour
 {
+    [Header("Controls")]
+    public GameObject[] controlButtons; //buttons on title screen
+    public GameObject[] controls; //actual UI elements for movement controls
+    public GameObject attackPanel; //UI element for attack buttons
+    public bool leftHanded = false; //if true, swap attack and controls
+    public int selectedControl;
 
-    public GameObject[] controlButtons;
-    public GameObject[] controls;
-    public string[] levels;
-    public int currentLevel;
-    public GameObject attackPanel;
-    public bool leftHanded = false;
+    [Header("Scene names")]
     public string titleScreenScene;
     public string testRoomScene;
+    public string overworldScene;
     public string inGameScene;
 
-    public int selectedControl;
+    [Header("Ship config")]
+    //the below do not include mandatory engine/cockpit rooms
+    public int smallShipRooms;
+    public int mediumShipRooms;
+    public int largeShipRooms;
+    public int[] smallRoomCount;
+    public int[] mediumRoomCount;
+    public int[] largeRoomCount;
+
+    [Header("Current ship info")]
+    public string[] levels; //levels to traverse through for the current ship, or null if not in ship
+    public int currentLevel; //index of above
+    public OverworldShip currentShip;
 
     public TileMap activeTileMap;
 
-    static bool started = false;
-
+    static bool started = false; //to ensure only one overlord exists
 
     void Awake()
     {
@@ -75,7 +88,7 @@ public class Overlord : MonoBehaviour
 
     public void StartGame()
     {
-        SceneManager.LoadScene(inGameScene);
+        SceneManager.LoadScene(overworldScene);
     }
 
     public void EnterTestRoom()
@@ -89,7 +102,7 @@ public class Overlord : MonoBehaviour
         {
             SetupControlButtons();
         }
-        else
+        else if (scene.name == inGameScene)
         {
             AssignActiveMap();
             Transform main = GameObject.Find("Canvas").transform.Find(leftHanded ? "RightControl" : "LeftControl").Find("Scaler");
@@ -97,55 +110,72 @@ public class Overlord : MonoBehaviour
             Instantiate(controls[selectedControl], main);
             Instantiate(attackPanel, atk);
 
-            if (scene.name == inGameScene)
-            {
-                currentLevel = -1;
-                NextLevel();
-            }
-            else
-            {
-                GameObject.Find("BackButton").GetComponent<Button>().onClick.AddListener(() => SceneManager.LoadScene(titleScreenScene));
-            }
-
-            AdjustFixedCamera();
+            LoadLevel(0);
         }
+    }
+
+    public void LoadLevel(int level)
+    {
+        currentLevel = level;
+        activeTileMap.LoadMapFromFile(levels[level]);
+        //activeTileMap.SpawnPlayer(GameObject.FindWithTag("Entrance").GetComponent<Tile>());
+        activeTileMap.StartTurnQueue();
+    }
+
+    //given a ship, generate the level order & begin traversing the levels of the ship
+    public void EnterShip(OverworldShip ship)
+    {
+        GenerateLevelOrder(ship);
+        SceneManager.LoadScene(inGameScene);
+        currentShip = ship;
+    }
+
+    public void GenerateLevelOrder(OverworldShip ship)
+    {
+        //set num of levels to randomly generate
+        int numLevels = 0;
+        int[] counts = new int[3];
+        switch(ship.size)
+        {
+            case OverworldShip.ShipSize.Small:
+                numLevels = smallShipRooms;
+                counts = smallRoomCount;
+                break;
+            case OverworldShip.ShipSize.Medium:
+                numLevels = mediumShipRooms;
+                counts = mediumRoomCount;
+                break;
+            case OverworldShip.ShipSize.Large:
+                numLevels = largeShipRooms;
+                counts = largeRoomCount;
+                break;
+        }
+
+        levels = new string[numLevels + 2]; //add 2 for mandatory engine/cockpit
+
+        string identifier = ""; //used to select rooms in randomization
+        identifier += ((int)ship.zone + 1); //convert zone to 1-based int (first zone = 0+1 = 1)
+        identifier += (new string[] { "S", "M", "L" })[(int)ship.size]; //convert size to char (small = 0 = "S")
+        identifier += "_";
+
+        levels[0] = "Engine" + identifier + Random.Range(0, counts[0]);
+        for(int i=0; i<numLevels; i++)
+        {
+            levels[i + 1] = "Room" + identifier + Random.Range(0, counts[1]);
+        }
+        levels[levels.Length - 1] = "Cockpit" + identifier + Random.Range(0, counts[2]);
     }
 
     public void NextLevel()
     {
-        currentLevel++;
-        activeTileMap.LoadMapFromFile(levels[currentLevel]);
-        activeTileMap.SpawnPlayer(GameObject.FindWithTag("Entrance").GetComponent<Tile>());
-        activeTileMap.StartTurnQueue();
+        if(currentLevel+1 >= levels.Length)
+        {
+            currentShip.status = OverworldShip.ShipStatus.Complete;
+            SceneManager.LoadScene(overworldScene);
+        }
+        else
+            LoadLevel(currentLevel + 1);
     }
-
-    public void AdjustFixedCamera()
-    {
-        if (!activeTileMap) return;
-        Vector3 size = new Vector3(activeTileMap.mapWidth / 2f, 0, activeTileMap.mapHeight / 2f);
-        Vector3 tr = Camera.main.WorldToViewportPoint(size);
-        Vector3 tl = Camera.main.WorldToViewportPoint(new Vector3(-size.x, 0, size.z));
-        Vector3 br = Camera.main.WorldToViewportPoint(new Vector3(size.x, 0, -size.z));
-        Vector3 bl = Camera.main.WorldToViewportPoint(new Vector3(-size.x, 0, -size.z));
-
-        float scale = ((size * 2).magnitude / 3f / (Camera.main.aspect)) / Mathf.Tan(Mathf.Deg2Rad * Camera.main.fieldOfView / 2.0f); //needs tweaking
-        
-        //Debug.Log(tr);
-        //Debug.Log(tl);
-        //Debug.Log(br);
-        //Debug.Log(bl);
-
-        Vector3 newPos = Camera.main.transform.position;
-
-        if (br.x - bl.x != 0.6f)
-            newPos += Camera.main.transform.forward * (scale * (0.6f - (br.x - bl.x)));
-        if (bl.y != 0.05f)
-            newPos -= Camera.main.transform.up * (scale * (0.05f - bl.y));
-
-        Camera.main.transform.position = newPos;
-    }
-
-
 
     private void AssignActiveMap()
     {
