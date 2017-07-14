@@ -34,6 +34,10 @@ public abstract class TileAPI : MonoBehaviour
     //applied BEFORE tile.unit is set to null
     public abstract void OnExit();
 
-    //still needs to be implemented
+    //should work now, but hasn't been tested
+    //wait condition is currently "if no move action is used
+    //during the course of a turn" and will thusly not
+    //trigger if, for example, the unit moves twice and
+    //ends up on the same tile it began the turn on
     public abstract void OnWait();
 }
