@@ -11,6 +11,15 @@ using UnityEngine;
     the tile directly in front of the player.
  */
 
+/*
+ * Programmer: Pablo Camacho
+ * Date: 07/11/17
+ * Description:
+    I added functions to implement methods of loading local data from global save load object to player 
+    and saving local data from player to local data in global save load object. 
+     
+ */
+ 
 public class Player : Unit
 {
     [Header("Default Weapons")]
@@ -23,24 +32,16 @@ public class Player : Unit
     //the player has access to two weapons at once
     private Weapon leftWeapon;
     private Weapon rightWeapon;
+    
+    public PlayerData localData; // data to be saved locally and to save file if player so chooses
 
     void Start()
     {
-        inventory = GetComponent<Inventory>();
-        if (defaultSwordPrefab != null)
-        {
-            Weapon sword = Instantiate(defaultSwordPrefab,gameObject.transform);
-            inventory.AddToInventory(sword);
-            SetLeftWeapon(sword);
-            
-        }
-        if (defaultGunPrefab != null)
-        {
-            Weapon gun = Instantiate(defaultGunPrefab,gameObject.transform);
-            inventory.AddToInventory(gun);
-            SetRightWeapon(gun);
-        }
-        currentHealth = maxHealth;
+//		Debug.Log("Player Initialization started! ");
+	
+		//load initial save data from global control save load object to player
+		LoadPlayerDataFromGlobalControlSaveLoad();	
+        
         //unitId = 1;
         canMove = true;
 
@@ -155,6 +156,9 @@ public class Player : Unit
         if (inventory.Contains(weapon))
         {
             leftWeapon = weapon;
+            localData.leftWeaponDamage = leftWeapon.damage;
+            localData.leftWeaponDamage = leftWeapon.range;
+            localData.leftWeaponName = leftWeapon.itemName;
         }
     }
 
@@ -163,6 +167,95 @@ public class Player : Unit
         if (inventory.Contains(weapon))
         {
             rightWeapon = weapon;
+            localData.rightWeaponDamage = rightWeapon.damage;
+            localData.rightWeaponDamage = rightWeapon.range;
+            localData.rightWeaponName = rightWeapon.itemName;
         }
     }
+    
+    //function to load player data from global control save load object
+    //use this for when inside InGame scene
+    public void LoadPlayerDataFromGlobalControlSaveLoad()
+    {
+		//assign saved local player data in global control to local data in player
+		GlobalControl globalControlSaveLoad = GlobalControl.GetGlobalControlSaveLoadObject();
+		
+		if(globalControlSaveLoad.savedLocalPlayerDataTemporary != null){localData = globalControlSaveLoad.savedLocalPlayerDataTemporary;}
+		else{localData = globalControlSaveLoad.initialDefaultPlayerData;}
+		
+		//set left weapon from local save data in global control save load
+		if(defaultSwordPrefab != null)
+		{
+			Weapon savedLeftWeapon = Instantiate(defaultSwordPrefab,gameObject.transform);		
+			savedLeftWeapon.damage = localData.leftWeaponDamage;
+			savedLeftWeapon.range = localData.leftWeaponRange;
+			savedLeftWeapon.itemName = localData.leftWeaponName;
+			inventory = GetComponent<Inventory>();
+			inventory.AddToInventory(savedLeftWeapon);
+			SetLeftWeapon(savedLeftWeapon);
+		}
+		//set right weapon from local save data in global control save load
+		if(defaultGunPrefab != null)
+		{
+			Weapon savedRightWeapon = Instantiate(defaultGunPrefab,gameObject.transform);		
+			savedRightWeapon.damage = localData.rightWeaponDamage;
+			savedRightWeapon.range = localData.rightWeaponRange;
+			savedRightWeapon.itemName = localData.rightWeaponName;
+			inventory = GetComponent<Inventory>();
+			inventory.AddToInventory(savedRightWeapon);
+			SetRightWeapon(savedRightWeapon);
+		}
+		//set health from local save data
+		currentHealth = localData.health;
+	}
+	
+	//function to load player data from global control save load object
+	//use this when getting out of InGame scene to overworld
+    public void SavePlayerDataToGlobalControlSaveLoad()
+    {
+		GlobalControl globalControlSaveLoad = GlobalControl.GetGlobalControlSaveLoadObject();
+		
+		//set left weapon to local save data in global control save load					
+		globalControlSaveLoad.savedLocalPlayerDataTemporary = localData;
+		
+		
+		
+		Debug.Log("Left Weapon loaded from initial save data is " + leftWeapon + " damage:" + leftWeapon.damage
+					+ " range:" + leftWeapon.range + " name:" + leftWeapon.itemName +"\n");
+					
+		Debug.Log("Right Weapon loaded from initial save data is " + rightWeapon + " damage:" + rightWeapon.damage
+					+ " range:" + rightWeapon.range + " name:" + rightWeapon.itemName +"\n");
+		
+        
+	}
+	
+	//function to load from default values before save load system
+	private void LoadFromDefault()
+	{
+		inventory = GetComponent<Inventory>();
+        if (defaultSwordPrefab != null)
+        {
+            Weapon sword = Instantiate(defaultSwordPrefab,gameObject.transform);
+            inventory.AddToInventory(sword);
+            SetLeftWeapon(sword);
+            
+        }
+        if (defaultGunPrefab != null)
+        {
+            Weapon gun = Instantiate(defaultGunPrefab,gameObject.transform);
+            inventory.AddToInventory(gun);
+            SetRightWeapon(gun);
+        }
+        
+        currentHealth = maxHealth;
+        
+        
+        Debug.Log("Left Weapon loaded from default is " + leftWeapon + " damage:" + leftWeapon.damage
+					+ " range:" + leftWeapon.range +  " name:" + leftWeapon.itemName + "\n");
+		
+		Debug.Log("Right Weapon loaded from default is " + rightWeapon + " damage:" + rightWeapon.damage
+					+ " range:" + rightWeapon.range + " name:" + rightWeapon.itemName +"\n");
+        
+	}
+	
 }
