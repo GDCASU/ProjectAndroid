@@ -26,7 +26,8 @@ public class Player : Unit
     public Weapon defaultSwordPrefab;
     public Weapon defaultGunPrefab;
     public Weapon thirdWeaponPrefab;
-
+	public ChargingWeapon defaultChargingWeaponPrefab;
+	
     private bool canMove;
 
     //the player has access to two weapons at once
@@ -184,12 +185,14 @@ public class Player : Unit
 		else{localData = globalControlSaveLoad.initialDefaultPlayerData;}
 		
 		//set left weapon from local save data in global control save load
-		if(defaultSwordPrefab != null)
+		if(defaultChargingWeaponPrefab != null)
 		{
-			Weapon savedLeftWeapon = Instantiate(defaultSwordPrefab,gameObject.transform);		
+			
+			ChargingWeapon savedLeftWeapon = Instantiate(defaultChargingWeaponPrefab,gameObject.transform);		
 			savedLeftWeapon.damage = localData.leftWeaponDamage;
 			savedLeftWeapon.range = localData.leftWeaponRange;
 			savedLeftWeapon.itemName = localData.leftWeaponName;
+			savedLeftWeapon.chargeTime = localData.leftWeaponChargeTime;
 			inventory = GetComponent<Inventory>();
 			inventory.AddToInventory(savedLeftWeapon);
 			SetLeftWeapon(savedLeftWeapon);
@@ -213,19 +216,21 @@ public class Player : Unit
 	//use this when getting out of InGame scene to overworld
     public void SavePlayerDataToGlobalControlSaveLoad()
     {
+		//update local data with current player info on health and weapons
+		localData.health = currentHealth;
+		
+		localData.leftWeaponDamage = leftWeapon.damage;
+		localData.leftWeaponRange = leftWeapon.range;
+		localData.leftWeaponName = leftWeapon.itemName;
+		
+		localData.rightWeaponDamage = rightWeapon.damage;
+		localData.rightWeaponRange = rightWeapon.range;
+		localData.rightWeaponName = rightWeapon.itemName;
+		
 		GlobalControl globalControlSaveLoad = GlobalControl.GetGlobalControlSaveLoadObject();
 		
-		//set left weapon to local save data in global control save load					
+		//assign local data to temp saved data					
 		globalControlSaveLoad.savedLocalPlayerDataTemporary = localData;
-		
-		
-		
-		Debug.Log("Left Weapon loaded from initial save data is " + leftWeapon + " damage:" + leftWeapon.damage
-					+ " range:" + leftWeapon.range + " name:" + leftWeapon.itemName +"\n");
-					
-		Debug.Log("Right Weapon loaded from initial save data is " + rightWeapon + " damage:" + rightWeapon.damage
-					+ " range:" + rightWeapon.range + " name:" + rightWeapon.itemName +"\n");
-		
         
 	}
 	

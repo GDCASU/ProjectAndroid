@@ -27,9 +27,11 @@ public class PlayerData {
 	public int leftWeaponDamage;
     public int leftWeaponRange;
     public string leftWeaponName;
+    public float leftWeaponChargeTime;
+    
 	//player right weapon;
 	public int rightWeaponDamage;
     public int rightWeaponRange;
     public string rightWeaponName;
-   
+    public float rightWeaponChargeTime;
 }

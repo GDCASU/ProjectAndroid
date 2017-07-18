@@ -100,10 +100,12 @@ public class GlobalControl : MonoBehaviour {
         {
 			//assign saved local data in global control to local copy of player data for save file
 			localCopyOfPlayerDataForSavefile = savedLocalPlayerDataTemporary; 
-		
+			
 			//write local copy of player data in binary form to save file
 			formatter.Serialize(saveFile,localCopyOfPlayerDataForSavefile);
 			saveFile.Close(); //close save file
+			
+			Debug.Log("Player info saved! \n");
 		}
         
     }
@@ -146,13 +148,15 @@ public class GlobalControl : MonoBehaviour {
 		initialDefaultPlayerData.leftWeaponDamage = leftDamage;
 		int leftRange = 7;
 		initialDefaultPlayerData.leftWeaponRange = leftRange;
-		string leftName = "My Ass Initial";
+		string leftName = "Charging Weapon Initial";
 		initialDefaultPlayerData.leftWeaponName = leftName;
+		float chargeTime = 3;
+		initialDefaultPlayerData.leftWeaponChargeTime = chargeTime;
 		
 		//right weapon 
-		int rightDamage = 3;
+		int rightDamage = 4;
 		initialDefaultPlayerData.rightWeaponDamage = rightDamage;
-		int rightRange = 7;
+		int rightRange = 2;
 		initialDefaultPlayerData.rightWeaponRange = rightRange;
 		string rightName = "My Mass Initial";
 		initialDefaultPlayerData.rightWeaponName = rightName;
