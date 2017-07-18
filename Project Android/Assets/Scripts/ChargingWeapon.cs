@@ -39,14 +39,14 @@ public class ChargingWeapon : Weapon {
     }
 	
 	// Use this for initialization
-	void Start () 
+	protected void Start () 
 	{
 		timeSinceUse = 0;
 		weaponState = State.READY_TO_USE;
 	}
 	
 	// Update is called once per frame
-	void Update () 
+	protected void Update () 
 	{
 		//increment timeSinceUse if weapon is in charging state
 		if(weaponState == State.CHARGING){timeSinceUse += Time.deltaTime; Debug.Log("Charging Weapon! \n");}
