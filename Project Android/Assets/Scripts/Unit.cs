@@ -38,6 +38,8 @@ public class Unit : MonoBehaviour
     public float speed;
     public bool isActiveUnit; //is this unit currently taking its turn?
 
+    protected bool movedThisTurn;
+
 
     //UnitID is the "team" of the unit. Units on the same team can't damage eachother. 
     //Enemies have an ID of 0, the player has an ID of 1.
@@ -67,8 +69,10 @@ public class Unit : MonoBehaviour
     {
         //will have to decide how to detect when each phase is finished and continue
         //easily changed later, for now just execute them in order on one frame
+        movedThisTurn = false;
         Upkeep();
         StartCoroutine(MainAction());
+        if (movedThisTurn == false) occupiedTile.OnWait();
     }
 
     public virtual void Upkeep()
@@ -100,7 +104,7 @@ public class Unit : MonoBehaviour
 
     public virtual void Move()
     {
-        
+        movedThisTurn = true;
     }
 
     public virtual void Attack()
