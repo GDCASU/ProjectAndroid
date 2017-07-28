@@ -12,7 +12,8 @@ public class SaveLoadScript : MonoBehaviour {
 
 	public void SaveTempDataToSaveFile()
 	{
-		GlobalControl.GetGlobalControlSaveLoadObject().SaveDataToSaveFile();
+		Player.FindPlayer().SavePlayerDataToGlobalControlSaveLoad(); //save player local data to temp save data
+		GlobalControl.GetGlobalControlSaveLoadObject().SaveDataToSaveFile(); //save temp save data to save file
 	}
 	
 	public void LoadSaveFileDataToTempData()
