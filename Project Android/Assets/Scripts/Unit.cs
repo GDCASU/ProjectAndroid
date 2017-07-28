@@ -130,6 +130,11 @@ public class Unit : MonoBehaviour
         if (currentHealth >= maxHealth) currentHealth = maxHealth;
     }
 
+    public virtual float GetSpeed()
+    {
+        return speed;
+    }
+
     public void SetInventory(Inventory inv)
     {
         inventory = inv;

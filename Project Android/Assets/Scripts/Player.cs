@@ -130,6 +130,11 @@ public class Player : Unit
         
     }
 
+    public override float GetSpeed()
+    {
+        return speed + equippedWeapon.speedMod;
+    }
+
     public static Player FindPlayer()
     {
         GameObject plyObj = GameObject.FindGameObjectWithTag("Player");

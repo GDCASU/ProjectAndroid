@@ -29,4 +29,9 @@ public class TitleInputHandler : MonoBehaviour {
     {
         overlord.EnterTestRoom();
     }
+
+    public void SetupControlButtons()
+    {
+        overlord.SetupControlButtons();
+    }
 }

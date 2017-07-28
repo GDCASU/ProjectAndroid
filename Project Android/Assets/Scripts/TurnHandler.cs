@@ -19,7 +19,7 @@ public class TurnHandler : MonoBehaviour
     //add a unit to waiting queue
     public void Queue(Unit unit)
     {
-        unit.turnTimer = 1 / unit.speed;
+        unit.turnTimer = 1 / unit.GetSpeed();
         for (int i = 0; i < turnQueue.Count; i++)
         {
             if (turnQueue[i].turnTimer > unit.turnTimer)

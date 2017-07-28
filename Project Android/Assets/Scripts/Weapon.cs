@@ -12,6 +12,7 @@ public class Weapon : Item {
 
     public int damage;
     public int range;
+    public float speedMod;
 
     public virtual void PerformAttack(Unit attacker, int direction)
     {

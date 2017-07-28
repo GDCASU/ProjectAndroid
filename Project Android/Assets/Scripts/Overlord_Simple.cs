@@ -7,11 +7,11 @@ using UnityEngine.UI;
 
 // Developer:   Kyle Aycock
 // Date:        6/16/2017
-// Description: This script currently manages the player's progression through different rooms.
-//              It also contains methods responsible for adding in the controls selected by the player
-//              and some extraneous methods having to do with the camera.
+// Description: This script is a version of the Overlord with most features cut. Instead of sending
+//              the player to an Overworld, it simply sends them through a sequence of levels according
+//              to an array specified in the inspector.
 
-public class Overlord : MonoBehaviour
+public class Overlord_Simple : MonoBehaviour
 {
     [Header("Controls")]
     public GameObject[] controlButtons; //buttons on title screen
@@ -22,8 +22,6 @@ public class Overlord : MonoBehaviour
 
     [Header("Scene names")]
     public string titleScreenScene;
-    public string testRoomScene;
-    public string overworldScene;
     public string inGameScene;
 
     [Header("Ship config")]
@@ -44,8 +42,6 @@ public class Overlord : MonoBehaviour
 
     static bool started = false; //to ensure only one overlord exists
 
-    private bool controlsSetup = false;
-
     void Awake()
     {
         if (started) Destroy(gameObject);
@@ -57,7 +53,6 @@ public class Overlord : MonoBehaviour
 
     public void SetupControlButtons()
     {
-        if (controlsSetup) return;
         GameObject controlSchemeContainer = GameObject.Find("ControlSchemes");
         for (int i = 0; i < controlButtons.Length; i++)
         {
@@ -67,7 +62,6 @@ public class Overlord : MonoBehaviour
             if (i == 0)
                 control.GetComponent<Toggle>().isOn = true;
         }
-        controlsSetup = true;
     }
 
     private void ControlChange(int control)
@@ -92,18 +86,20 @@ public class Overlord : MonoBehaviour
 
     public void StartGame()
     {
-        SceneManager.LoadScene(overworldScene);
+        SceneManager.LoadScene(inGameScene);
     }
 
     public void EnterTestRoom()
     {
-        SceneManager.LoadScene(testRoomScene);
+        SceneManager.LoadScene("");
     }
 
     public void SceneChanged(Scene scene, LoadSceneMode mode)
     {
         if (scene.name == titleScreenScene)
-            controlsSetup = false;
+        {
+            SetupControlButtons();
+        }
         else if (scene.name == inGameScene)
         {
             AssignActiveMap();
@@ -173,7 +169,7 @@ public class Overlord : MonoBehaviour
         if(currentLevel+1 >= levels.Length)
         {
             currentShip.status = OverworldShip.ShipStatus.Complete;
-            SceneManager.LoadScene(overworldScene);
+            SceneManager.LoadScene("");
         }
         else
             LoadLevel(currentLevel + 1);
